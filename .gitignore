@@ -1,2 +1,9 @@
-**/.env
+# Turbo build cache
+.turbo/
+
+# Node modules
 **/node_modules/
+
+# Environment files
+.env
+**/.env
