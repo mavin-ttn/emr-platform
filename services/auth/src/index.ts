@@ -2,6 +2,8 @@ import express, { Request, Response, NextFunction } from 'express';
 import authRoutes from './routes/auth';
 import dotenv from 'dotenv';
 import helmet from 'helmet';
+const path = require('path');
+
 
 dotenv.config();
 
@@ -14,6 +16,10 @@ app.use(express.json());
 app.use('/auth', authRoutes);
 app.get('/healthCheck', (req: Request, res: Response) => {
   res.status(200).send('Service is healthy');
+});
+app.get('/', function(req, res) {
+  console.log('serving')
+  res.sendFile(path.join(__dirname, '/index.html'));
 });
 
 app.use((req, res, next) => {
