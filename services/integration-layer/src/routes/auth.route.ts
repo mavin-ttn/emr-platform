@@ -8,8 +8,6 @@ router.get(
   "/healthCheck",
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      throw new Error("harsh is here");
-
       const response = await axios.get("http://localhost:3000/healthCheck");
       console.log(response.data);
       res.json(response.data);
