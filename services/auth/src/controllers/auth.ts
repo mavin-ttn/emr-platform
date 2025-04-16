@@ -5,13 +5,18 @@ import { Request, Response } from 'express';
  */
 export const standaloneLaunch = (req: Request, res: Response): void => {
   try {
+    const role = req.query.role || 'patient';
+    const client_id =
+      role === 'patient'
+        ? process.env.EPIC_PATIENT_CLIENT_ID
+        : process.env.EPIC_PROVIDER_CLIENT_ID;
     const authParams = new URLSearchParams({
       /**
        * This parameter must contain the value "code".
        */
       response_type: 'code',
       // client_secret: '...' // Only if needed
-      client_id: process.env.CLIENT_ID as string,
+      client_id: client_id as string,
       /**
        * Redirect_uri parameter contains your application's redirect URI. After the request completes on the Epic server,
        * this URI will be called as a callback. The value of this parameter needs to be URL encoded.
@@ -67,7 +72,7 @@ export const standaloneLaunchCallback = async (
        * The value of this parameter needs to be URL encoded.
        */
       redirect_uri: process.env.STANDALONE_REDIRECT_URI as string,
-      client_id: process.env.CLIENT_ID as string,
+      client_id: process.env.EPIC_PATIENT_CLIENT_ID as string,
       // client_secret: '...' // Only if needed
     });
 
@@ -90,12 +95,12 @@ export const standaloneLaunchCallback = async (
     const data = await response.json();
     console.log(data);
 
-    const { access_token, token_type, id_token, scope } = data;
+    const { access_token, token_type, id_token, scope, patient } = data;
     // res.json({ access_token, token_type, id_token, scope });
 
     // Redirect back to frontend with the access token
     const token = data.access_token;
-    const redirectUrl = `http://localhost:5173/callback?access_token=${token}`;
+    const redirectUrl = `http://localhost:5173/callback?access_token=${token}&patient=${patient}`;
 
     // Redirect the user to the frontend with the token as a query parameter
     res.redirect(redirectUrl);

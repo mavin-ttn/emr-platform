@@ -14,6 +14,9 @@ importers:
 
   apps/patient-portal:
     dependencies:
+      axios:
+        specifier: ^1.8.4
+        version: 1.8.4
       react:
         specifier: ^19.0.0
         version: 19.1.0
