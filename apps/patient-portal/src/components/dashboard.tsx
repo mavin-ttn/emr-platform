@@ -71,44 +71,21 @@ function Dashboard() {
     fetchPatient();
   }, []);
 
+  if (!patient)
+    return <div className="text-center mt-20">Loading patient info...</div>;
+
   return (
-    <>
-      <h1>Welcome to dashboard</h1>
-      {patient && (
-        <div>
-          <p>
-            <strong>Name:</strong> {patient.name}
-          </p>
-          <p>
-            <strong>Gender:</strong> {patient.gender}
-          </p>
-          <p>
-            <strong>DOB:</strong> {patient.birthDate}
-          </p>
-          <p>
-            <strong>Address:</strong> {patient.address}
-          </p>
-          <p>
-            <strong>Phone:</strong> {patient.phone}
-          </p>
-          <p>
-            <strong>Email:</strong> {patient.email}
-          </p>
-          <p>
-            <strong>Marital Status:</strong> {patient.maritalStatus}
-          </p>
-          <p>
-            <strong>Language:</strong> {patient.language}
-          </p>
-          <p>
-            <strong>Practitioner:</strong> {patient.practitioner}
-          </p>
-          <p>
-            <strong>Organization:</strong> {patient.organization}
-          </p>
-        </div>
-      )}
-    </>
+    <div className="dashboard">
+      <h1 className="dashboard-title">Patient Dashboard</h1>
+      <div className="card-grid">
+        {Object.entries(patient).map(([key, value]) => (
+          <div key={key} className="card">
+            <p className="card-label">{key.replace(/([A-Z])/g, ' $1')}</p>
+            <p className="card-value">{value}</p>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 

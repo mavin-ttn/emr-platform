@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import './App.css';
+import Button from './components/Button';
 
 function App() {
   const handleLogin = (role) => {
@@ -10,37 +11,19 @@ function App() {
 
   return (
     <>
-      <h1>Smart on FHIR Login</h1>
-
-      <button
-        onClick={() => handleLogin('patient')}
-        style={{
-          padding: '10px 20px',
-          fontSize: '16px',
-          backgroundColor: '#007aff',
-          color: '#fff',
-          border: 'none',
-          borderRadius: '5px',
-          cursor: 'pointer',
-        }}
-      >
-        Login as Patient
-      </button>
-
-      <button
-        onClick={() => handleLogin('provider')}
-        style={{
-          padding: '10px 20px',
-          fontSize: '16px',
-          backgroundColor: '#007aff',
-          color: '#fff',
-          border: 'none',
-          borderRadius: '5px',
-          cursor: 'pointer',
-        }}
-      >
-        Login as Provider
-      </button>
+      <div className="app-container">
+        <h1 className="app-title">SMART on FHIR Login</h1>
+        <div className="button-group">
+          <Button
+            label="Login as Patient"
+            onClick={() => handleLogin('patient')}
+          />
+          <Button
+            label="Login as Provider"
+            onClick={() => handleLogin('provider')}
+          />
+        </div>
+      </div>
     </>
   );
 }

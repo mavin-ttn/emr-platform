@@ -1,7 +1,6 @@
 import { StrictMode } from 'react';
 import { createRoot, ReactDOM } from 'react-dom/client';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import './index.css';
 import App from './App';
 import Callback from './components/callback';
 import Dashboard from './components/dashboard';
