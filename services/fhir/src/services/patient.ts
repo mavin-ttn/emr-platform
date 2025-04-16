@@ -46,7 +46,6 @@ export const createPatient = async (
 ): Promise<any> => {
   const baseURL =
     'https://fhir.epic.com/interconnect-fhir-oauth/api/FHIR/R4/Patient';
-  console.log(patientData, authHeader, baseURL, 'agambase');
   try {
     const response = await axios.post(baseURL, patientData, {
       method: 'POST',
