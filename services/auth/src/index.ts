@@ -22,7 +22,7 @@ app.use(
 // Routes
 app.use('/auth', authRoutes);
 app.get('/healthCheck', (req: Request, res: Response) => {
-  res.status(200).send('Service is healthy');
+  res.status(200).send('Auth Service is healthy');
 });
 app.get('/', function (req, res) {
   console.log('serving');
