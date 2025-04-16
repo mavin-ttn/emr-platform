@@ -2,8 +2,8 @@ import express, { Request, Response, NextFunction } from 'express';
 import authRoutes from './routes/auth';
 import dotenv from 'dotenv';
 import helmet from 'helmet';
+import cors from 'cors';
 const path = require('path');
-
 
 dotenv.config();
 
@@ -12,13 +12,20 @@ const app = express();
 app.use(helmet());
 app.use(express.json());
 
+app.use(
+  cors({
+    origin: 'http://localhost:5173',
+    credentials: true,
+  })
+);
+
 // Routes
 app.use('/auth', authRoutes);
 app.get('/healthCheck', (req: Request, res: Response) => {
   res.status(200).send('Auth Service is healthy');
 });
-app.get('/', function(req, res) {
-  console.log('serving')
+app.get('/', function (req, res) {
+  console.log('serving');
   res.sendFile(path.join(__dirname, '/index.html'));
 });
 
