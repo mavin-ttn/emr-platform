@@ -20,7 +20,7 @@ function Callback() {
     navigate('/dashboard');
   }, []);
 
-  return <></><p>Completing login...</p></>;
+  return <><p>Completing login...</p></>;
 }
 
 export default Callback;

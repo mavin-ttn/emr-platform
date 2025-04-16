@@ -91,7 +91,7 @@ export const standaloneLaunchCallback = async (
     console.log(data);
 
     const { access_token, token_type, id_token, scope } = data;
-    res.json({ access_token, token_type, id_token, scope });
+    // res.json({ access_token, token_type, id_token, scope });
 
     // Redirect back to frontend with the access token
     const token = data.access_token;
