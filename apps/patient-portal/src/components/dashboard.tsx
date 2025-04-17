@@ -19,9 +19,63 @@ function Dashboard() {
   const [patient, setPatient] = useState<PatientInfo | null>(null);
 
   useEffect(() => {
+    const handleCreatePatient = async () => {
+      const token = localStorage.getItem('access_token');
+
+      if (!token) {
+        console.warn('Access token not found');
+        return;
+      }
+
+      const patientData = {
+        resourceType: 'Patient',
+        name: [
+          {
+            use: 'official',
+            family: 'Doe',
+            given: ['John'],
+          },
+        ],
+        gender: 'male',
+        birthDate: '1990-01-01',
+        identifier: [
+          {
+            system: 'urn:oid:2.16.840.1.113883.4.1',
+            value: '999-91-1234',
+          },
+        ],
+      };
+
+      try {
+        const response = await fetch(
+          'https://fhir.epic.com/interconnect-fhir-oauth/api/FHIR/R4/Patient',
+          {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/fhir+json',
+              Accept: 'application/fhir+json',
+            },
+            body: JSON.stringify(patientData),
+          }
+        );
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          console.error('Failed to create patient:', result);
+        } else {
+          console.log('Patient created successfully:', result);
+        }
+      } catch (error) {
+        console.error('Error creating patient:', error);
+      }
+    };
+
     const fetchPatient = async () => {
       const token = localStorage.getItem('access_token');
-      const patientId = localStorage.getItem('patient_id');
+      const patientId =
+        localStorage.getItem('patient_id') || 'erXuFYUfucBZaryVksYEcMg3';
 
       if (!token) {
         console.warn('No access token found!');
@@ -30,7 +84,7 @@ function Dashboard() {
 
       try {
         const response = await axios.get(
-          `https://fhir.epic.com/interconnect-fhir-oauth/api/FHIR/R4/Patient/${patientId}`,
+          `https://fhir.epic.com/interconnect-fhir-oauth/api/FHIR/R4/Practitioner/e3MBXCOmcoLKl7ayLD51AWA3`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -69,6 +123,7 @@ function Dashboard() {
     };
 
     fetchPatient();
+    handleCreatePatient();
   }, []);
 
   if (!patient)

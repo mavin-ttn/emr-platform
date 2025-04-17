@@ -27,7 +27,8 @@ export const standaloneLaunch = (req: Request, res: Response): void => {
        * This parameter describes the information for which the web application is requesting access.
        * @doc https://hl7.org/fhir/smart-app-launch/1.0.0/scopes-and-launch-context/index.html
        */
-      scope: 'launch openid fhirUser patient/*.read offline_access',
+      scope:
+        'launch openid fhirUser patient/Patient.write patient/*.read user/Practitioner.read user/Patient.write Practitioner.read offline_access',
       /**
        * URL of the resource server the application intends to access, which is typically the FHIR server.
        */
