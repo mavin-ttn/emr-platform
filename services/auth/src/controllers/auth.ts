@@ -7,6 +7,7 @@ import { getWellKnownSmartConfiguration } from '../services/fhir.service';
  * @description Requests an Authorization Code from auth server
  */
 export const standaloneLaunch = (req: Request, res: Response): void => {
+<<<<<<< HEAD
     const provider = req.params.provider as EhrProvider;
 
     if (!provider) {
@@ -49,6 +50,45 @@ export const standaloneLaunch = (req: Request, res: Response): void => {
         console.error('Error:', (error as Error).message);
         res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).send('Internal server error');
     }
+=======
+  try {
+    const role = req.query.role || 'patient';
+    client_id =
+      role === 'patient'
+        ? process.env.EPIC_PATIENT_CLIENT_ID
+        : process.env.EPIC_PROVIDER_CLIENT_ID;
+    const authParams = new URLSearchParams({
+      /**
+       * This parameter must contain the value "code".
+       */
+      response_type: 'code',
+      // client_secret: '...' // Only if needed
+      client_id: client_id as string,
+      /**
+       * Redirect_uri parameter contains your application's redirect URI. After the request completes on the Epic server,
+       * this URI will be called as a callback. The value of this parameter needs to be URL encoded.
+       * his URI must also be registered with the EHR's authorization server by adding it to your app listing
+       */
+      redirect_uri: process.env.STANDALONE_REDIRECT_URI as string,
+      /**
+       * This parameter describes the information for which the web application is requesting access.
+       * @doc https://hl7.org/fhir/smart-app-launch/1.0.0/scopes-and-launch-context/index.html
+       */
+      scope:
+        'launch openid fhirUser patient/Patient.write patient/*.read user/Practitioner.read user/Patient.write Practitioner.read offline_access',
+      /**
+       * URL of the resource server the application intends to access, which is typically the FHIR server.
+       */
+      aud: process.env.FHIR_API_BASE as string,
+    });
+    const redirectUrl = `${process.env.EPIC_AUTH_URL}?${authParams.toString()}`;
+    console.log('Redirecting:', redirectUrl);
+    res.redirect(redirectUrl);
+  } catch (error) {
+    console.error('Error:', (error as Error).message);
+    res.status(500).send('Internal server error');
+  }
+>>>>>>> 7fa66ad (Work on create patient)
 };
 
 /**
