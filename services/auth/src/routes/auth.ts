@@ -3,9 +3,10 @@ import { standaloneLaunch, standaloneLaunchCallback, embeddedLaunch, embeddedLau
 
 const router = express.Router();
 
-router.get('/standalone', standaloneLaunch);
-router.get('/embedded', embeddedLaunch);
+router.get('/standalone/:provider', standaloneLaunch);
 router.get('/callback', standaloneLaunchCallback);
+
+router.get('/embedded', embeddedLaunch);
 router.get('/embeddedCallback', embeddedLaunchCallback);
 
 export default router;
