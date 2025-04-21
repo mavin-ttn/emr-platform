@@ -1,26 +1,21 @@
 {
-  "name": "auth",
+  "name": "gateway",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "index.ts",
   "scripts": {
-    "dev": "ts-node-dev src/index.ts",
-    "build": "tsc",
-    "lint": "eslint . --ext .ts",
-    "test": "echo \"No tests yet\""
+    "dev": "ts-node-dev src/index.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "packageManager": "pnpm@10.8.0",
   "dependencies": {
-    "@types/cors": "^2.8.17",
-    "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
-    "jsonwebtoken": "^9.0.2",
-    "pg": "^8.14.1"
+    "express-rate-limit": "^7.5.0",
+    "http-proxy-middleware": "^3.0.5"
   },
   "devDependencies": {
     "@types/express": "^5.0.1",

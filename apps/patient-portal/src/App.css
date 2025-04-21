@@ -1,42 +1,105 @@
-#root {
-  max-width: 1280px;
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f9fafb;
+  margin: 0;
+  padding: 0;
+}
+
+.dashboard {
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 40px 20px;
+}
+
+.dashboard-title {
+  font-size: 32px;
+  font-weight: 600;
   text-align: center;
+  margin-bottom: 40px;
+  color: #1f2937;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
-}
-
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 24px;
 }
 
 .card {
-  padding: 2em;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e5e7eb;
+  padding: 20px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.read-the-docs {
-  color: #888;
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
 }
+
+.card-label {
+  color: #6b7280;
+  font-size: 14px;
+  margin-bottom: 6px;
+  text-transform: capitalize;
+}
+
+.card-value {
+  color: #111827;
+  font-size: 16px;
+  font-weight: 500;
+  word-wrap: break-word;
+}
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: #f9fafb;
+  padding: 20px;
+}
+
+.app-title {
+  font-size: 32px;
+  font-weight: 600;
+  margin-bottom: 40px;
+  color: #1f2937;
+}
+
+.button-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.custom-button {
+  padding: 12px 24px;
+  font-size: 16px;
+  background-color: #007aff;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+  margin: 10px 0;
+  width: 220px;
+}
+
+.custom-button:hover {
+  background-color: #005fcc;
+  transform: translateY(-2px);
+}
+
+.custom-button:active {
+  background-color: #0047a5;
+  transform: scale(0.98);
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { ehrAuthConfig } from '../config';
 import { EhrProvider, HttpStatusCode, HttpMethod } from '../enums';
+import { getWellKnownSmartConfiguration } from '../services/fhir.service';
 
 /**
  * @description Requests an Authorization Code from auth server
@@ -108,7 +109,7 @@ export const standaloneLaunchCallback = async (req: Request, res: Response): Pro
         console.error('Error:', (error as Error).message);
         res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).send('Internal server error');
     }
-};
+}
 
 function getEhrProviderByIssuer(fhirApiBase: string): EhrProvider {
     return Object.entries(ehrAuthConfig).find(
@@ -117,7 +118,7 @@ function getEhrProviderByIssuer(fhirApiBase: string): EhrProvider {
 }
 
 /**
- * Your app is launched by the EHR calling the launch URL which is specified in the EHR's configuration. 
+ * Your app is launched by the EHR calling the launch URL which is specified in the EHR's configuration.
  * The EHR sends a launch token and the FHIR server's endpoint URL (ISS parameter).
  */
 let tokenUrl: string
@@ -145,13 +146,7 @@ export const embeddedLaunch = async (req: Request, res: Response): Promise<any> 
 
     try {
         // Discover authorization and token endpoint. Alternatively, /metadata cas be used as fallback
-        const smartConfigUrl = `${fhirServerUrl}/.well-known/smart-configuration`;
-        const smartConfigResponse = await fetch(smartConfigUrl);
-        const smartConfig: {
-            authorization_endpoint: string,
-            token_endpoint: string,
-            token_endpoint_auth_methods_supported: string[]
-        } = await smartConfigResponse.json();
+        const smartConfig = await getWellKnownSmartConfiguration(fhirServerUrl)
         const authorizeUrl = smartConfig.authorization_endpoint;
         tokenUrl = smartConfig.token_endpoint;
 
@@ -241,4 +236,9 @@ export const embeddedLaunchCallback = async (req: Request, res: Response): Promi
     }
 }
 
-module.exports = { standaloneLaunch, standaloneLaunchCallback, embeddedLaunch, embeddedLaunchCallback }
+module.exports = {
+    standaloneLaunch,
+    standaloneLaunchCallback,
+    embeddedLaunch,
+    embeddedLaunchCallback,
+};

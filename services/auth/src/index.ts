@@ -2,17 +2,29 @@ import express, { Request, Response, NextFunction } from 'express';
 import authRoutes from './routes/auth';
 import { appConfig } from './config';
 import { HttpStatusCode } from './enums';
+import cors from 'cors';
 
-const path = require('path');
 const app = express();
+
 // Routes
 app.use('/auth', authRoutes);
 app.get('/healthCheck', (req: Request, res: Response) => {
   res.status(HttpStatusCode.OK).send('Service is healthy');
 });
-app.get('/', function (req, res) {
-  console.log('serving')
-  res.sendFile(path.join(__dirname, '/index.html'));
+
+app.use(express.json());
+
+app.use(
+  cors({
+    origin: 'http://localhost:5173',
+    credentials: true,
+  })
+);
+
+// Routes
+app.use('/auth', authRoutes);
+app.get('/healthCheck', (req: Request, res: Response) => {
+  res.status(200).send('Auth Service is healthy');
 });
 
 app.use((req, res, next) => {
@@ -25,5 +37,5 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
 });
 
 app.listen(appConfig.port, () => {
-  console.log(`Server running at ${appConfig.origin}`);
+  console.log(`Auth Server running at ${appConfig.origin}`);
 });
