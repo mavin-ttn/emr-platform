@@ -80,7 +80,7 @@ function Dashboard() {
 
   if (!patient)
     return (
-      <div className="text-center mt-20">
+      <div className="centered-loading">
         Loading {userRole === ROLE.PATIENT ? 'Patient ' : 'Provider'} info...
       </div>
     );
@@ -94,14 +94,16 @@ function Dashboard() {
       {userRole === ROLE.PRACTITIONER ? <CreatePatient /> : null}
 
       <div className="card-grid grid grid-cols-2 gap-4 p-4">
-        {Object.entries(patient).map(([key, value]) => (
-          <div key={key} className="card p-4 border rounded shadow">
-            <p className="card-label font-semibold">
-              {key.replace(/([A-Z])/g, ' $1')}
-            </p>
-            <p className="card-value text-gray-700">{value}</p>
-          </div>
-        ))}
+        {Object.entries(patient)
+          .filter(([_, value]) => value) // filters out undefined, null, '', 0, false
+          .map(([key, value]) => (
+            <div key={key} className="card p-4 border rounded shadow">
+              <p className="card-label font-semibold">
+                {key.replace(/([A-Z])/g, ' $1')}
+              </p>
+              <p className="card-value text-gray-700">{value}</p>
+            </div>
+          ))}
       </div>
     </div>
   );
