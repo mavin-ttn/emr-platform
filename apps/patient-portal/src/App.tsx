@@ -5,7 +5,6 @@ import Button from './components/Button';
 function App() {
   const handleLogin = (role) => {
     // role can be 'patient' or 'provider'
-    //localStorage.setItem('userRole', '');
     const url = `http://localhost:3000/auth/standalone?role=${role}`;
     window.location.href = url;
   };
