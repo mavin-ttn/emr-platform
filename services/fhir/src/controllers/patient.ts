@@ -41,6 +41,7 @@ export const createPatientRequest = async (
   res: Response
 ): Promise<void> => {
   const patientData = req.body;
+  console.log(patientData, 'patientDatat');
   try {
     const authHeader = req.headers?.authorization || '';
     const patientDetails = await createPatient(patientData, authHeader);
