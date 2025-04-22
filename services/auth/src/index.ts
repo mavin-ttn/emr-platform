@@ -1,5 +1,6 @@
 import express, { Request, Response, NextFunction } from 'express';
 import authRoutes from './routes/auth';
+import routes from './routes/routes';
 import dotenv from 'dotenv';
 import helmet from 'helmet';
 import cors from 'cors';
@@ -21,6 +22,7 @@ app.use(
 
 // Routes
 app.use('/auth', authRoutes);
+app.use('/v2', routes);
 app.get('/healthCheck', (req: Request, res: Response) => {
   res.status(200).send('Auth Service is healthy');
 });
