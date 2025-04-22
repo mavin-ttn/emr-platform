@@ -7,4 +7,8 @@ export const proxyRoutes = [
     path: "/fhir",
     target: process.env.FHIR_SERVICE_URL || "http://localhost:5000",
   },
+  {
+    path: "/transformer",
+    target: process.env.FHIR_SERVICE_URL || "http://localhost:3002",
+  },
 ];
