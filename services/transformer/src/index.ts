@@ -1,18 +1,15 @@
 import express from "express";
 import dotenv from "dotenv";
+import routes from "./startup/routes";
 
 dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3002;
 
-app.use(express.json());
-
-app.get("/health", (req, res) => {
-  res.send({ status: "OK" });
-});
+routes(app);
 
 
 app.listen(port, () => {
-  console.log(`API Gateway running at http://localhost:${port}`);
+  console.log(`Transformer API running at http://localhost:${port}`);
 });
