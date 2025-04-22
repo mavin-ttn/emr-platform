@@ -55,17 +55,14 @@ const CreatePatient = () => {
 
     try {
       setIsLoading(true);
-      const response = await fetch(
-        'http://localhost:3007/v2/patient/create',
-        {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(patientData),
-        }
-      );
+      const response = await fetch('http://localhost:3007/v2/patient/create', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(patientData),
+      });
 
       console.log(response.status, 'create api response');
       if (response.status === 201) {
