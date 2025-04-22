@@ -5,7 +5,13 @@ import Button from './components/Button';
 function App() {
   const handleLogin = (role) => {
     // role can be 'patient' or 'provider'
+    //localStorage.setItem('userRole', '');
     const url = `http://localhost:3000/auth/standalone?role=${role}`;
+    window.location.href = url;
+  };
+
+  const handleEmbeddedLogin = () => {
+    const url = `http://localhost:3000/auth/embeddedLaunch`;
     window.location.href = url;
   };
 
@@ -21,6 +27,10 @@ function App() {
           <Button
             label="Login as Provider"
             onClick={() => handleLogin('provider')}
+          />
+          <Button
+            label="Login as Embedded App"
+            onClick={() => handleEmbeddedLogin()}
           />
         </div>
       </div>
