@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import Button from './Button';
 
 const CreatePatient = () => {
-  const [status, setStatus] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [notification, setNotification] = useState<string | null>(null);
@@ -30,7 +29,7 @@ const CreatePatient = () => {
   const handleCreatePatient = async () => {
     const token = localStorage.getItem('access_token');
     if (!token) {
-      setStatus('Access token not found');
+      setNotification('Access token not found');
       return;
     }
 
@@ -57,13 +56,12 @@ const CreatePatient = () => {
     try {
       setIsLoading(true);
       const response = await fetch(
-        'https://fhir.epic.com/interconnect-fhir-oauth/api/FHIR/R4/Patient',
+        'http://localhost:3007/v2/patient/create',
         {
           method: 'POST',
           headers: {
             Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/fhir+json',
-            Accept: 'application/fhir+json',
+            'Content-Type': 'application/json',
           },
           body: JSON.stringify(patientData),
         }
