@@ -119,8 +119,22 @@ importers:
         specifier: ^5.8.3
         version: 5.8.3
 
+<<<<<<< HEAD
   services/gateway:
     dependencies:
+=======
+  services/fhir:
+    dependencies:
+      '@types/cors':
+        specifier: ^2.8.17
+        version: 2.8.17
+      axios:
+        specifier: ^1.8.4
+        version: 1.8.4
+      bcrypt:
+        specifier: ^5.1.1
+        version: 5.1.1
+>>>>>>> 9109bda (fixed create patient api)
       cors:
         specifier: ^2.8.5
         version: 2.8.5
@@ -130,12 +144,24 @@ importers:
       express:
         specifier: ^5.1.0
         version: 5.1.0
+<<<<<<< HEAD
       express-rate-limit:
         specifier: ^7.5.0
         version: 7.5.0(express@5.1.0)
       http-proxy-middleware:
         specifier: ^3.0.5
         version: 3.0.5
+=======
+      helmet:
+        specifier: ^8.1.0
+        version: 8.1.0
+      jsonwebtoken:
+        specifier: ^9.0.2
+        version: 9.0.2
+      pg:
+        specifier: ^8.14.1
+        version: 8.14.1
+>>>>>>> 9109bda (fixed create patient api)
     devDependencies:
       '@types/express':
         specifier: ^5.0.1
