@@ -1,6 +1,8 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import CreatePatient from './CreatePatient';
+import ROLE from '../constants/index';
 
 interface PatientInfo {
   name: string;
@@ -17,65 +19,16 @@ interface PatientInfo {
 
 function Dashboard() {
   const [patient, setPatient] = useState<PatientInfo | null>(null);
+  const userRole = localStorage.getItem('userRole');
 
   useEffect(() => {
-    const handleCreatePatient = async () => {
-      const token = localStorage.getItem('access_token');
-
-      if (!token) {
-        console.warn('Access token not found');
-        return;
-      }
-
-      const patientData = {
-        resourceType: 'Patient',
-        name: [
-          {
-            use: 'official',
-            family: 'Doe',
-            given: ['John'],
-          },
-        ],
-        gender: 'male',
-        birthDate: '1990-01-01',
-        identifier: [
-          {
-            system: 'urn:oid:2.16.840.1.113883.4.1',
-            value: '999-91-1234',
-          },
-        ],
-      };
-
-      try {
-        const response = await fetch(
-          'https://fhir.epic.com/interconnect-fhir-oauth/api/FHIR/R4/Patient',
-          {
-            method: 'POST',
-            headers: {
-              Authorization: `Bearer ${token}`,
-              'Content-Type': 'application/fhir+json',
-              Accept: 'application/fhir+json',
-            },
-            body: JSON.stringify(patientData),
-          }
-        );
-
-        const result = await response.json();
-
-        if (!response.ok) {
-          console.error('Failed to create patient:', result);
-        } else {
-          console.log('Patient created successfully:', result);
-        }
-      } catch (error) {
-        console.error('Error creating patient:', error);
-      }
-    };
-
     const fetchPatient = async () => {
       const token = localStorage.getItem('access_token');
       const patientId =
-        localStorage.getItem('patient_id') || 'erXuFYUfucBZaryVksYEcMg3';
+        localStorage.getItem('patient_id') === 'undefined'
+          ? undefined
+          : localStorage.getItem('patient_id');
+      const userId = patientId || localStorage.getItem('id');
 
       if (!token) {
         console.warn('No access token found!');
@@ -84,7 +37,7 @@ function Dashboard() {
 
       try {
         const response = await axios.get(
-          `https://fhir.epic.com/interconnect-fhir-oauth/api/FHIR/R4/Practitioner/e3MBXCOmcoLKl7ayLD51AWA3`,
+          `https://fhir.epic.com/interconnect-fhir-oauth/api/FHIR/R4/${userRole}/${userId}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -123,20 +76,30 @@ function Dashboard() {
     };
 
     fetchPatient();
-    handleCreatePatient();
   }, []);
 
   if (!patient)
-    return <div className="text-center mt-20">Loading patient info...</div>;
+    return (
+      <div className="text-center mt-20">
+        Loading {userRole === ROLE.PATIENT ? 'Patient ' : 'Provider'} info...
+      </div>
+    );
 
   return (
     <div className="dashboard">
-      <h1 className="dashboard-title">Patient Dashboard</h1>
-      <div className="card-grid">
+      <h1 className="dashboard-title text-2xl font-bold my-6 text-center">
+        {userRole === ROLE.PATIENT ? 'Patient ' : 'Provider'} Dashboard
+      </h1>
+
+      {userRole === ROLE.PRACTITIONER ? <CreatePatient /> : null}
+
+      <div className="card-grid grid grid-cols-2 gap-4 p-4">
         {Object.entries(patient).map(([key, value]) => (
-          <div key={key} className="card">
-            <p className="card-label">{key.replace(/([A-Z])/g, ' $1')}</p>
-            <p className="card-value">{value}</p>
+          <div key={key} className="card p-4 border rounded shadow">
+            <p className="card-label font-semibold">
+              {key.replace(/([A-Z])/g, ' $1')}
+            </p>
+            <p className="card-value text-gray-700">{value}</p>
           </div>
         ))}
       </div>
