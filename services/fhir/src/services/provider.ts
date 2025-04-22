@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-export const getPatientDetails = async (userId: string, authHeader: string): Promise<any> => {
-  const baseURL = `https://fhir.epic.com/interconnect-fhir-oauth/api/FHIR/R4/Patient/${userId}`;
+export const getPractitionerDetails = async (userId: string, authHeader: string): Promise<any> => {
+  const baseURL = `https://fhir.epic.com/interconnect-fhir-oauth/api/FHIR/R4/Practitioner/${userId}`;
   try {
     const response = await axios.get(baseURL, {
       headers: {

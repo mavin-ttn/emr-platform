@@ -1,5 +1,5 @@
 import express, { Request, Response, NextFunction } from 'express';
-import authRoutes from './routes/auth';
+import routes from './routes/routes';
 import dotenv from 'dotenv';
 import helmet from 'helmet';
 import cors from 'cors';
@@ -20,7 +20,7 @@ app.use(
 );
 
 // Routes
-app.use('/auth', authRoutes);
+app.use('/v2', routes);
 app.get('/healthCheck', (req: Request, res: Response) => {
   res.status(200).send('Service is healthy');
 });
@@ -38,7 +38,7 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   res.status(500).send('Internal Server Error');
 });
 
-const port = process.env.PORT ?? 3000;
+const port = process.env.PORT ?? 3007;
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
 });
