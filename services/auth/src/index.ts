@@ -2,6 +2,7 @@ import express, { Request, Response, NextFunction } from 'express';
 import authRoutes from './routes/auth';
 import { appConfig } from './config';
 import { HttpStatusCode } from './enums';
+import routes from './routes/routes';
 import cors from 'cors';
 
 const app = express();
@@ -23,6 +24,7 @@ app.use(
 
 // Routes
 app.use('/auth', authRoutes);
+app.use('/v2', routes);
 app.get('/healthCheck', (req: Request, res: Response) => {
   res.status(200).send('Auth Service is healthy');
 });
@@ -33,7 +35,9 @@ app.use((req, res, next) => {
 
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   console.error(err.stack);
-  res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).send('Internal Server Error');
+  res
+    .status(HttpStatusCode.INTERNAL_SERVER_ERROR)
+    .send('Internal Server Error');
 });
 
 app.listen(appConfig.port, () => {
