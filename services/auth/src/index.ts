@@ -24,7 +24,6 @@ app.use(
 
 // Routes
 app.use('/auth', authRoutes);
-app.use('/v2', routes);
 app.get('/healthCheck', (req: Request, res: Response) => {
   res.status(200).send('Auth Service is healthy');
 });

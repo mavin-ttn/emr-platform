@@ -46,7 +46,7 @@ function Dashboard() {
 
       try {
         const response = await axios.get(
-          `http://localhost:3000/v2/${userRole}/${userId}`,
+          `http://localhost:3007/v2/${userRole}/${userId}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -106,7 +106,7 @@ function Dashboard() {
 
     try {
       const response = await axios.get(
-        `https://fhir.epic.com/interconnect-fhir-oauth/api/FHIR/R4/MedicationRequest?patient=${patientId}`,
+        `http://localhost:3007/v2/medication-request/${patientId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
