@@ -9,11 +9,6 @@ function App() {
     window.location.href = url;
   };
 
-  const handleEmbeddedLogin = () => {
-    const url = `http://localhost:3000/auth/embeddedLaunch`;
-    window.location.href = url;
-  };
-
   return (
     <>
       <div className="app-container">
@@ -26,10 +21,6 @@ function App() {
           <Button
             label="Login as Provider"
             onClick={() => handleLogin('provider')}
-          />
-          <Button
-            label="Login as Embedded App"
-            onClick={() => handleEmbeddedLogin()}
           />
         </div>
       </div>
