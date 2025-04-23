@@ -157,7 +157,7 @@ export const embeddedLaunch = async (
       /**
        * This parameter contains your web application's client ID issued by Epic
        */
-      client_id: process.env.CLIENT_ID as string,
+      client_id: process.env.EPIC_PROVIDER_CLIENT_ID as string,
       /**
        * This parameter contains your application's redirect URI. After the request completes on the Epic server,
        * this URI will be called as a callback. The value of this parameter needs to be URL encoded.
@@ -208,7 +208,7 @@ export const embeddedLaunchCallback = async (
     const tokenParams = new URLSearchParams({
       grant_type: 'authorization_code',
       code: code,
-      client_id: process.env.CLIENT_ID ?? '',
+      client_id: process.env.EPIC_PROVIDER_CLIENT_ID ?? '',
       redirect_uri: process.env.EMBEDDED_REDIRECT_URI ?? '',
     });
     const tokenResponse = await fetch(tokenUrl, {
@@ -227,8 +227,12 @@ export const embeddedLaunchCallback = async (
 
     const tokenData = await tokenResponse.json();
     const accessToken = tokenData.access_token as string;
+    const patient = tokenData.patient as string
 
-    res.send(`Access token received! ${accessToken}`);
+    const redirectUrl = `http://localhost:5173/callback?access_token=${accessToken}&patient=${patient}`
+
+    // Redirect the user to the frontend with the token as a query parameter
+    res.redirect(redirectUrl);
   } catch (err) {
     console.error('Unexpected error during token exchange:', err);
     res.status(500).send('Unexpected error during token exchange');
