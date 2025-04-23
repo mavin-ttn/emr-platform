@@ -88,3 +88,4 @@ export interface PatientData {
 export interface PatientDashboardProps {
   patientData: PatientData;
 }
+

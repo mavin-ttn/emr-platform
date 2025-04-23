@@ -1,5 +1,5 @@
 import express, { type Request, type Response, type Router } from "express";
-import { convertHL7ToJSON } from "../controller/hl7";
+import { convertHL7ToJSON } from "../controller/hl7.controller";
 
 const router: Router = express.Router();
 
