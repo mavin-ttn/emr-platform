@@ -152,21 +152,27 @@ function Dashboard() {
             </div>
           ))}
       </div>
-      <Button
-        label="Get Medication Request"
-        onClick={() => getMedicationRequest()}
-      />
-      <div className="card-grid grid grid-cols-2 gap-4 p-4">
-        {medicationRequest &&
-          Object.entries(medicationRequest).map(([key, value]) => (
-            <div key={key} className="card p-4 border rounded shadow">
-              <p className="card-label font-semibold">
-                {key.replace(/([A-Z])/g, ' $1')}
-              </p>
-              <p className="card-value text-gray-700">{value}</p>
-            </div>
-          ))}
-      </div>
+
+      {userRole === ROLE.PATIENT ? (
+        <>
+          {' '}
+          <Button
+            label="Get Medication Request"
+            onClick={() => getMedicationRequest()}
+          />
+          <div className="card-grid grid grid-cols-2 gap-4 p-4">
+            {medicationRequest &&
+              Object.entries(medicationRequest).map(([key, value]) => (
+                <div key={key} className="card p-4 border rounded shadow">
+                  <p className="card-label font-semibold">
+                    {key.replace(/([A-Z])/g, ' $1')}
+                  </p>
+                  <p className="card-value text-gray-700">{value}</p>
+                </div>
+              ))}
+          </div>
+        </>
+      ) : null}
     </div>
   );
 }
