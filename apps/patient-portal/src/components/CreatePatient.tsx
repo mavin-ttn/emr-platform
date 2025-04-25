@@ -2,10 +2,6 @@ import React, { useState } from 'react';
 import Button from './Button';
 
 const CreatePatient = () => {
-<<<<<<< HEAD
-=======
-  const [status, setStatus] = useState<string | null>(null);
->>>>>>> a2ce831 (ui for create patient done)
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [notification, setNotification] = useState<string | null>(null);
@@ -59,7 +55,6 @@ const CreatePatient = () => {
 
     try {
       setIsLoading(true);
-<<<<<<< HEAD
       const response = await fetch('http://localhost:3007/v2/patient/create', {
         method: 'POST',
         headers: {
@@ -68,20 +63,6 @@ const CreatePatient = () => {
         },
         body: JSON.stringify(patientData),
       });
-=======
-      const response = await fetch(
-        'https://fhir.epic.com/interconnect-fhir-oauth/api/FHIR/R4/Patient',
-        {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/fhir+json',
-            Accept: 'application/fhir+json',
-          },
-          body: JSON.stringify(patientData),
-        }
-      );
->>>>>>> a2ce831 (ui for create patient done)
 
       console.log(response.status, 'create api response');
       if (response.status === 201) {
