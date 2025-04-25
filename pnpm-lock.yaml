@@ -159,7 +159,6 @@ importers:
         specifier: ^5.8.3
         version: 5.8.3
 
-<<<<<<< HEAD
   services/gateway:
     dependencies:
       cors:
@@ -191,8 +190,6 @@ importers:
         specifier: ^5.8.3
         version: 5.8.3
 
-=======
->>>>>>> 824b9754f9bc65aaacd6a5f89f4f185b082abd72
   services/fhir:
     dependencies:
       cors:
@@ -1054,6 +1051,9 @@ packages:
       {
         integrity: sha512-MAQAFufNZBZ6V0F94Nhknmmh/E3iMXFK4n/L8RkSNjKtOJnvaAJERivNOj35VVx9VCQBJbE0BHSzikfBahoRhA==,
       }
+
+  '@types/fhir@0.0.41':
+    resolution: {integrity: sha512-MAQAFufNZBZ6V0F94Nhknmmh/E3iMXFK4n/L8RkSNjKtOJnvaAJERivNOj35VVx9VCQBJbE0BHSzikfBahoRhA==}
 
   '@types/http-errors@2.0.4':
     resolution:
@@ -2084,11 +2084,8 @@ packages:
       }
 
   hasown@2.0.2:
-    resolution:
-      {
-        integrity: sha512-0hJU9SCPvmMzIBdZFqNPXWa6dqh7WdH0cII9y+CyS8rG3nL48Bclra9HmKhVVUHyPWNH5Y7xDwAB7bfgSjkUMQ==,
-      }
-    engines: { node: '>= 0.4' }
+    resolution: {integrity: sha512-0hJU9SCPvmMzIBdZFqNPXWa6dqh7WdH0cII9y+CyS8rG3nL48Bclra9HmKhVVUHyPWNH5Y7xDwAB7bfgSjkUMQ==}
+    engines: {node: '>= 0.4'}
 
   http-errors@2.0.0:
     resolution:
