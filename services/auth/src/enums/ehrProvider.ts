@@ -1,4 +1,4 @@
 export enum EhrProvider {
-    EPIC = 'epic',
-    CERNER = 'cerner'
+  EPIC = 'epic',
+  CERNER = 'cerner',
 }
