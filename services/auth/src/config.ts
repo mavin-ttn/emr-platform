@@ -25,8 +25,8 @@ export const ehrAuthConfig: Record<EhrProvider, EhRAuthConfig> = {
     authorizationUrl: process.env.CERNER_AUTH_URL!,
     tokenUrl: process.env.CERNER_TOKEN_URL!,
     clientId: {
-      patient: process.env.CERNER_CLIENT_ID!,
-      practitioner: process.env.CERNER_CLIENT_ID!,
+      patient: process.env.CERNER_PATIENT_CLIENT_ID!,
+      practitioner: process.env.CERNER_PROVIDER_CLIENT_ID!,
     },
     standaloneRedirectUrl: appConfig.origin + '/auth/callback',
     embeddedRedirectUrl: appConfig.origin + '/auth/embeddedCallback',
