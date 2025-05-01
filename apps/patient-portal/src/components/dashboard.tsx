@@ -46,7 +46,7 @@ function Dashboard() {
 
       try {
         const response = await axios.get(
-          `http://localhost:3007/v2/${userRole}/${userId}`,
+          `http://localhost:3000/v2/${userRole}/${userId}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -106,7 +106,7 @@ function Dashboard() {
 
     try {
       const response = await axios.get(
-        `http://localhost:3007/v2/medication-request/${patientId}`,
+        `https://fhir.epic.com/interconnect-fhir-oauth/api/FHIR/R4/MedicationRequest?patient=${patientId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -128,14 +128,15 @@ function Dashboard() {
   if (!patient)
     return (
       <div className="centered-loading">
-        Loading {userRole === ROLE.PATIENT ? 'Patient ' : 'Provider'} info...
+        Loading {userRole === ROLE.PATIENT ? 'Patient ' : 'Practitioner'}{' '}
+        info...
       </div>
     );
 
   return (
     <div className="dashboard">
       <h1 className="dashboard-title text-2xl font-bold my-6 text-center">
-        {userRole === ROLE.PATIENT ? 'Patient ' : 'Provider'} Dashboard
+        {userRole === ROLE.PATIENT ? 'Patient ' : 'Practitioner'} Dashboard
       </h1>
 
       {userRole === ROLE.PRACTITIONER ? <CreatePatient /> : null}

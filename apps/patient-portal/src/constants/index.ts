@@ -1,6 +1,6 @@
 const ROLE = {
-  PATIENT: 'Patient',
-  PRACTITIONER: 'Practitioner',
+  PATIENT: 'patient',
+  PRACTITIONER: 'practitioner',
 };
 
 export default ROLE;
