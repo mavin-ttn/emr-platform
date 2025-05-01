@@ -1,4 +1,4 @@
-type Role = 'patient' | 'practitioner';
+type Role = "patient" | "practitioner" | "practitionerStu3";
 
 export interface EhRAuthConfig {
   authorizationUrl: string;

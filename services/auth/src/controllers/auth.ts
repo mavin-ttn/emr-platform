@@ -1,33 +1,36 @@
-import { Request, Response } from 'express';
-import { ehrAuthConfig } from '../config';
-import { EhrProvider, HttpStatusCode, HttpMethod } from '../enums';
-import { getWellKnownSmartConfiguration } from '../services/fhir.service';
+import { Request, Response } from "express";
+import { ehrAuthConfig } from "../config";
+import { EhrProvider, HttpStatusCode, HttpMethod } from "../enums";
+import { getWellKnownSmartConfiguration } from "../services/fhir.service";
 
-let client_id: string = '';
+let client_id: string = "";
 /**
  * @description Requests an Authorization Code from auth server
  */
 export const standaloneLaunch = (req: Request, res: Response): void => {
   const provider = req.params.provider as EhrProvider;
 
-  const roleParam = req.query.role as string;
-  const role = roleParam === 'practitioner' ? 'practitioner' : 'patient';
+  const { role: roleParam, fhirType: fhirTypeParam } = req.query;
+  const role = roleParam === "practitioner" ? "practitioner" : "patient";
 
   if (!provider) {
-    console.log('Missing emr param');
-    res.status(HttpStatusCode.BAD_REQUEST).send('Missing emr param');
+    console.log("Missing emr param");
+    res.status(HttpStatusCode.BAD_REQUEST).send("Missing emr param");
     return;
   }
 
   const authConfig = ehrAuthConfig[provider];
   client_id = authConfig?.clientId?.[role as keyof typeof authConfig.clientId];
+  if (fhirTypeParam === "stu3") {
+    client_id = authConfig?.clientId?.practitionerStu3;
+  }
 
   try {
     const authParams = new URLSearchParams({
       /**
        * This parameter must contain the value "code".
        */
-      response_type: 'code',
+      response_type: "code",
       // client_secret: '...' // Only if needed
       client_id: client_id,
       /**
@@ -50,13 +53,13 @@ export const standaloneLaunch = (req: Request, res: Response): void => {
     const redirectUrl = `${
       authConfig.authorizationUrl
     }?${authParams.toString()}`;
-    console.log('Redirecting:', redirectUrl);
+    console.log("Redirecting:", redirectUrl);
     res.redirect(redirectUrl);
   } catch (error) {
-    console.error('Error:', (error as Error).message);
+    console.error("Error:", (error as Error).message);
     res
       .status(HttpStatusCode.INTERNAL_SERVER_ERROR)
-      .send('Internal server error');
+      .send("Internal server error");
   }
 };
 
@@ -70,8 +73,8 @@ export const standaloneLaunchCallback = async (
   const { code, state } = req.query;
   const authConfig = ehrAuthConfig[state as EhrProvider];
 
-  if (typeof code !== 'string') {
-    res.status(HttpStatusCode.BAD_REQUEST).send('Missing or invalid code');
+  if (typeof code !== "string") {
+    res.status(HttpStatusCode.BAD_REQUEST).send("Missing or invalid code");
     return;
   }
 
@@ -80,7 +83,7 @@ export const standaloneLaunchCallback = async (
       /**
        * For the Standalone launch flow, this should contain the value "authorization_code"
        */
-      grant_type: 'authorization_code',
+      grant_type: "authorization_code",
       /**
        * This parameter contains the authorization code sent from Epic's authorization server to your
        * application as a querystring parameter on the redirect URI
@@ -99,17 +102,17 @@ export const standaloneLaunchCallback = async (
     const response = await fetch(authConfig.tokenUrl, {
       method: HttpMethod.POST,
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
+        "Content-Type": "application/x-www-form-urlencoded",
       },
       body: params.toString(),
     });
 
     if (!response.ok) {
       const errorData = await response.text();
-      console.error('Token exchange failed:', errorData);
+      console.error("Token exchange failed:", errorData);
       res
         .status(HttpStatusCode.INTERNAL_SERVER_ERROR)
-        .send('Token exchange failed');
+        .send("Token exchange failed");
       return;
     }
 
@@ -123,10 +126,10 @@ export const standaloneLaunchCallback = async (
     // Redirect the user to the frontend with the token as a query parameter
     res.redirect(redirectUrl);
   } catch (error) {
-    console.error('Error:', (error as Error).message);
+    console.error("Error:", (error as Error).message);
     res
       .status(HttpStatusCode.INTERNAL_SERVER_ERROR)
-      .send('Internal server error');
+      .send("Internal server error");
   }
 };
 
@@ -157,16 +160,16 @@ export const embeddedLaunch = async (
     console.warn(`Blocked launch attempt from unknown iss: ${fhirServerUrl}`);
     return res
       .status(HttpStatusCode.UNAUTHORIZED)
-      .send('Unauthorized EHR system.');
+      .send("Unauthorized EHR system.");
   }
 
   const authConfig = ehrAuthConfig[ehrProvider];
 
   if (!fhirServerUrl || !launchContext) {
-    console.log('Missing iss or launch parameter');
+    console.log("Missing iss or launch parameter");
     return res
       .status(HttpStatusCode.BAD_REQUEST)
-      .send('Missing iss or launch parameter.');
+      .send("Missing iss or launch parameter.");
   }
 
   try {
@@ -179,7 +182,7 @@ export const embeddedLaunch = async (
       /**
        * This parameter must contain the value "code".
        */
-      response_type: 'code',
+      response_type: "code",
       /**
        * This parameter contains your web application's client ID issued by Epic
        */
@@ -194,7 +197,7 @@ export const embeddedLaunch = async (
        * This parameter describes the information for which the web application is requesting access.
        * @doc https://hl7.org/fhir/smart-app-launch/1.0.0/scopes-and-launch-context/index.html
        */
-      scope: 'launch patient/*.read',
+      scope: "launch patient/*.read",
       /**
        * This parameter is required for EHR launch workflows. The value to use will be passed from the EHR
        */
@@ -209,11 +212,11 @@ export const embeddedLaunch = async (
 
     // Redeem launch token for authorization code
     const redirectUrl = `${authorizeUrl}?${authParams.toString()}`;
-    console.log('Redirecting:', redirectUrl);
+    console.log("Redirecting:", redirectUrl);
     res.redirect(redirectUrl);
   } catch (error) {
     console.error(error);
-    res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).send('Failed to launch');
+    res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).send("Failed to launch");
   }
 };
 
@@ -227,7 +230,7 @@ export const embeddedLaunchCallback = async (
   if (!code) {
     return res
       .status(HttpStatusCode.BAD_REQUEST)
-      .send('Missing authorization code.');
+      .send("Missing authorization code.");
   }
 
   const authConfig = ehrAuthConfig[state as EhrProvider];
@@ -235,7 +238,7 @@ export const embeddedLaunchCallback = async (
   try {
     // Exchanges the Authorization Code for an Access Token
     const tokenParams = new URLSearchParams({
-      grant_type: 'authorization_code',
+      grant_type: "authorization_code",
       code: code as string,
       client_id: client_id,
       redirect_uri: authConfig.embeddedRedirectUrl,
@@ -243,17 +246,17 @@ export const embeddedLaunchCallback = async (
     const tokenResponse = await fetch(tokenUrl, {
       method: HttpMethod.POST,
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
+        "Content-Type": "application/x-www-form-urlencoded",
       },
       body: tokenParams.toString(),
     });
 
     if (!tokenResponse.ok) {
       const errorText = await tokenResponse.text();
-      console.error('Token exchange failed:', errorText);
+      console.error("Token exchange failed:", errorText);
       return res
         .status(HttpStatusCode.INTERNAL_SERVER_ERROR)
-        .send('Error exchanging code for token');
+        .send("Error exchanging code for token");
     }
 
     const tokenData = await tokenResponse.json();
@@ -261,10 +264,10 @@ export const embeddedLaunchCallback = async (
 
     res.send(`Access token received! ${accessToken}`);
   } catch (err) {
-    console.error('Unexpected error during token exchange:', err);
+    console.error("Unexpected error during token exchange:", err);
     res
       .status(HttpStatusCode.INTERNAL_SERVER_ERROR)
-      .send('Unexpected error during token exchange');
+      .send("Unexpected error during token exchange");
   }
 };
 
