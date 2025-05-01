@@ -1,9 +1,9 @@
-import { EhrProvider } from './enums/ehrProvider';
-import { EhRAuthConfig, AppConfig } from './types';
-require('dotenv').config();
+import { EhrProvider } from "./enums/ehrProvider";
+import { EhRAuthConfig, AppConfig } from "./types";
+require("dotenv").config();
 
 export const appConfig: AppConfig = {
-  port: process.env.PORT! || '3000',
+  port: process.env.PORT! || "3000",
   host: process.env.HOST!,
   origin: `${process.env.HOST}:${process.env.PORT}`,
 };
@@ -15,11 +15,12 @@ export const ehrAuthConfig: Record<EhrProvider, EhRAuthConfig> = {
     clientId: {
       patient: process.env.EPIC_PATIENT_CLIENT_ID!,
       practitioner: process.env.EPIC_PROVIDER_CLIENT_ID!,
+      practitionerStu3: process.env.EPIC_PROVIDER_CLIENT_ID_STU3!,
     },
-    standaloneRedirectUrl: appConfig.origin + '/auth/callback',
-    embeddedRedirectUrl: appConfig.origin + '/auth/embeddedCallback',
+    standaloneRedirectUrl: appConfig.origin + "/auth/callback",
+    embeddedRedirectUrl: appConfig.origin + "/auth/embeddedCallback",
     fhirApiBase: process.env.EPIC_FHIR_API_BASE!,
-    scope: 'openid profile user/Patient.read patient/MedicationRequest.write',
+    scope: "openid profile user/Patient.read patient/MedicationRequest.write",
   },
   [EhrProvider.CERNER]: {
     authorizationUrl: process.env.CERNER_AUTH_URL!,
@@ -27,10 +28,11 @@ export const ehrAuthConfig: Record<EhrProvider, EhRAuthConfig> = {
     clientId: {
       patient: process.env.CERNER_PATIENT_CLIENT_ID!,
       practitioner: process.env.CERNER_PROVIDER_CLIENT_ID!,
+      practitionerStu3: "",
     },
-    standaloneRedirectUrl: appConfig.origin + '/auth/callback',
-    embeddedRedirectUrl: appConfig.origin + '/auth/embeddedCallback',
+    standaloneRedirectUrl: appConfig.origin + "/auth/callback",
+    embeddedRedirectUrl: appConfig.origin + "/auth/embeddedCallback",
     fhirApiBase: process.env.CERNER_FHIR_API_BASE!,
-    scope: 'openid profile user/Patient.read',
+    scope: "openid profile user/Patient.read",
   },
 };
