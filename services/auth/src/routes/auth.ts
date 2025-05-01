@@ -5,15 +5,16 @@ import {
   embeddedLaunch,
   embeddedLaunchCallback,
 } from '../controllers/auth';
+import { HttpStatusCode } from '../enums';
 
 const router = express.Router();
 
 router.get('/', (req, res) => {
-  res.status(200).send('auth is healthy');
+  res.status(HttpStatusCode.OK).send('auth is healthy');
 });
-router.get('/standalone', standaloneLaunch);
-router.get('/embedded', embeddedLaunch);
+router.get('/standalone/:provider', standaloneLaunch);
 router.get('/callback', standaloneLaunchCallback);
+router.get('/embedded', embeddedLaunch);
 router.get('/embeddedCallback', embeddedLaunchCallback);
 
 export default router;
