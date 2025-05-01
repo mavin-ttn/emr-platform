@@ -1,9 +1,9 @@
-import React from 'react';
-import { useState, useEffect } from 'react';
-import axios from 'axios';
-import CreatePatient from './CreatePatient';
-import ROLE from '../constants/index';
-import Button from './Button';
+import { useState, useEffect } from "react";
+import axios from "axios";
+import CreatePatient from "./CreatePatient";
+import ROLE from "../constants/index";
+import Button from "./Button";
+import { useNavigate } from "react-router-dom";
 
 interface PatientInfo {
   name: string;
@@ -28,25 +28,27 @@ function Dashboard() {
   const [patient, setPatient] = useState<PatientInfo | null>(null);
   const [medicationRequest, setMedicationRequest] =
     useState<MedicationRequest | null>(null);
-  const userRole = localStorage.getItem('userRole');
+  const userRole = localStorage.getItem("userRole");
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchPatient = async () => {
-      const token = localStorage.getItem('access_token');
+      const token = localStorage.getItem("access_token");
       const patientId =
-        localStorage.getItem('patient_id') === 'undefined'
+        localStorage.getItem("patient_id") === "undefined"
           ? undefined
-          : localStorage.getItem('patient_id');
-      const userId = patientId || localStorage.getItem('id');
+          : localStorage.getItem("patient_id");
+      const userId = patientId || localStorage.getItem("id");
 
       if (!token) {
-        console.warn('No access token found!');
+        console.warn("No access token found!");
         return;
       }
 
       try {
         const response = await axios.get(
-          `http://localhost:3000/v2/${userRole}/${userId}`,
+          `http://localhost:3007/v2/${userRole}/${userId}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -59,48 +61,50 @@ function Dashboard() {
         const nameEntry = data.name?.[0] || {};
         const addressEntry = data.address?.[0] || {};
         const telecomPhone = data.telecom?.find(
-          (t: any) => t.system === 'phone'
+          (t: any) => t.system === "phone"
         );
         const telecomEmail = data.telecom?.find(
-          (t: any) => t.system === 'email'
+          (t: any) => t.system === "email"
         );
 
         setPatient({
           name:
             nameEntry.text ||
-            `${nameEntry.given?.join(' ')} ${nameEntry.family}`,
+            `${nameEntry.given?.join(" ")} ${nameEntry.family}`,
           gender: data.gender,
           birthDate: data.birthDate,
-          address: addressEntry.line?.join(', ') + ', ' + addressEntry.city,
-          phone: telecomPhone?.value || '',
-          email: telecomEmail?.value || '',
-          maritalStatus: data.maritalStatus?.text || 'N/A',
-          language: data.communication?.[0]?.language?.text || 'N/A',
-          practitioner: data.generalPractitioner?.[0]?.display || 'N/A',
-          organization: data.managingOrganization?.display || 'N/A',
+          address: addressEntry.line?.join(", ") + ", " + addressEntry.city,
+          phone: telecomPhone?.value || "",
+          email: telecomEmail?.value || "",
+          maritalStatus: data.maritalStatus?.text || "N/A",
+          language: data.communication?.[0]?.language?.text || "N/A",
+          practitioner: data.generalPractitioner?.[0]?.display || "N/A",
+          organization: data.managingOrganization?.display || "N/A",
           id: patientId,
         });
       } catch (err) {
-        console.error('Failed to fetch patient data:', err);
+        console.error("Failed to fetch patient data:", err);
       }
     };
 
     fetchPatient();
+
+    getBookingData();
   }, []);
 
   useEffect(() => {
-    console.log('medication request state- ', medicationRequest);
+    console.log("medication request state- ", medicationRequest);
   }, [medicationRequest]);
 
   const getMedicationRequest = async () => {
-    const token = localStorage.getItem('access_token');
+    const token = localStorage.getItem("access_token");
     const patientId =
-      localStorage.getItem('patient_id') === 'undefined'
+      localStorage.getItem("patient_id") === "undefined"
         ? undefined
-        : localStorage.getItem('patient_id');
+        : localStorage.getItem("patient_id");
 
     if (!token) {
-      console.warn('No access token found!');
+      console.warn("No access token found!");
       return;
     }
 
@@ -115,20 +119,60 @@ function Dashboard() {
       );
 
       const data = response.data;
-      console.log('medication request - >', data);
+      console.log("medication request - >", data);
       setMedicationRequest({
         therapyType: data.entry[0].resource.courseOfTherapyType.text,
         dosageInstruction: data.entry[0].resource.dosageInstruction[0].text,
       });
     } catch (err) {
-      console.error('Failed to fetch patient data:', err);
+      console.error("Failed to fetch patient data:", err);
+    }
+  };
+
+  const getBookingData = async () => {
+    const token = localStorage.getItem("access_token");
+
+    if (!token) {
+      console.warn("No access token found!");
+      return;
+    }
+
+    const body = {
+      resourceType: "Parameters",
+      parameter: [
+        {
+          name: "startTime",
+          valueDateTime: "2025-05-01",
+        },
+        {
+          name: "endTime",
+          valueDateTime: "2025-05-02",
+        },
+      ],
+    };
+
+    try {
+      const response = await axios.post(
+        `https://fhir.epic.com/interconnect-fhir-oauth/api/FHIR/STU3/Appointment/$find`,
+        body,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = response.data;
+      console.log("booking data - >", data);
+    } catch (err) {
+      console.error("Failed to fetch booking data:", err);
     }
   };
 
   if (!patient)
     return (
       <div className="centered-loading">
-        Loading {userRole === ROLE.PATIENT ? 'Patient ' : 'Practitioner'}{' '}
+        Loading {userRole === ROLE.PATIENT ? "Patient " : "Practitioner"}{" "}
         info...
       </div>
     );
@@ -136,10 +180,19 @@ function Dashboard() {
   return (
     <div className="dashboard">
       <h1 className="dashboard-title text-2xl font-bold my-6 text-center">
-        {userRole === ROLE.PATIENT ? 'Patient ' : 'Practitioner'} Dashboard
+        {userRole === ROLE.PATIENT ? "Patient " : "Practitioner"} Dashboard
       </h1>
 
-      {userRole === ROLE.PRACTITIONER ? <CreatePatient /> : null}
+      {userRole === ROLE.PRACTITIONER ? (
+        <>
+          <CreatePatient />{" "}
+          <Button
+            label="Book Appointment"
+            onClick={() => navigate("/appointment")}
+            s
+          />
+        </>
+      ) : null}
 
       <div className="card-grid grid grid-cols-2 gap-4 p-4">
         {Object.entries(patient)
@@ -147,7 +200,7 @@ function Dashboard() {
           .map(([key, value]) => (
             <div key={key} className="card p-4 border rounded shadow">
               <p className="card-label font-semibold">
-                {key.replace(/([A-Z])/g, ' $1')}
+                {key.replace(/([A-Z])/g, " $1")}
               </p>
               <p className="card-value text-gray-700">{value}</p>
             </div>
@@ -156,7 +209,7 @@ function Dashboard() {
 
       {userRole === ROLE.PATIENT ? (
         <>
-          {' '}
+          {" "}
           <Button
             label="Get Medication Request"
             onClick={() => getMedicationRequest()}
@@ -166,7 +219,7 @@ function Dashboard() {
               Object.entries(medicationRequest).map(([key, value]) => (
                 <div key={key} className="card p-4 border rounded shadow">
                   <p className="card-label font-semibold">
-                    {key.replace(/([A-Z])/g, ' $1')}
+                    {key.replace(/([A-Z])/g, " $1")}
                   </p>
                   <p className="card-value text-gray-700">{value}</p>
                 </div>
