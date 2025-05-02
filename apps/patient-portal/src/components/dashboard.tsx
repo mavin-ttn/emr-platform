@@ -88,8 +88,6 @@ function Dashboard() {
     };
 
     fetchPatient();
-
-    getBookingData();
   }, []);
 
   useEffect(() => {
@@ -129,46 +127,6 @@ function Dashboard() {
     }
   };
 
-  const getBookingData = async () => {
-    const token = localStorage.getItem("access_token");
-
-    if (!token) {
-      console.warn("No access token found!");
-      return;
-    }
-
-    const body = {
-      resourceType: "Parameters",
-      parameter: [
-        {
-          name: "startTime",
-          valueDateTime: "2025-05-01",
-        },
-        {
-          name: "endTime",
-          valueDateTime: "2025-05-02",
-        },
-      ],
-    };
-
-    try {
-      const response = await axios.post(
-        `https://fhir.epic.com/interconnect-fhir-oauth/api/FHIR/STU3/Appointment/$find`,
-        body,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      const data = response.data;
-      console.log("booking data - >", data);
-    } catch (err) {
-      console.error("Failed to fetch booking data:", err);
-    }
-  };
-
   if (!patient)
     return (
       <div className="centered-loading">
@@ -184,14 +142,17 @@ function Dashboard() {
       </h1>
 
       {userRole === ROLE.PRACTITIONER ? (
-        <>
-          <CreatePatient />{" "}
-          <Button
-            label="Book Appointment"
-            onClick={() => navigate("/appointment")}
-            s
-          />
-        </>
+        <div className="flex justify-center gap-4 mb-4">
+          <div className="flex-1 w-max">
+            <CreatePatient />
+          </div>
+          <div className="flex-1 w-max">
+            <Button
+              label="Book Appointment"
+              onClick={() => navigate("/appointment")}
+            />
+          </div>
+        </div>
       ) : null}
 
       <div className="card-grid grid grid-cols-2 gap-4 p-4">
