@@ -1,0 +1,57 @@
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f9fafb;
+  margin: 0;
+  padding: 0;
+}
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: #f9fafb;
+  padding: 20px;
+}
+
+.app-title {
+  font-size: 32px;
+  font-weight: 600;
+  margin-bottom: 40px;
+  color: #1f2937;
+}
+
+.button-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.custom-button {
+  padding: 12px 24px;
+  font-size: 16px;
+  background-color: #9741ff;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+  margin: 10px 0;
+  width: 220px;
+}
+
+.custom-button:hover {
+  background-color: #7300ff;
+  transform: translateY(-2px);
+}
+
+.custom-button:active {
+  background-color: #53228e;
+  transform: scale(0.98);
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

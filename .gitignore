@@ -4,3 +4,5 @@
 # Node modules
 **/node_modules/
 
+**/input-batch-files/
+**/output-batch-files/
