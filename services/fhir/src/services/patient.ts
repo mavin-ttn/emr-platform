@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios from "axios";
 
 export const getPatientDetails = async (
   userId: string,
@@ -13,8 +13,8 @@ export const getPatientDetails = async (
     });
     return response.data;
   } catch (error: any) {
-    console.error('Error fetching patient details:', error.message);
-    throw new Error('Failed to fetch patient details');
+    console.error("Error fetching patient details:", error.message);
+    throw new Error("Failed to fetch patient details");
   }
 };
 
@@ -35,8 +35,8 @@ export const getMedicationRequests = async (
     });
     return response.data;
   } catch (error: any) {
-    console.error('Error fetching medication requests:', error.message);
-    throw new Error('Failed to fetch medication requests');
+    console.error("Error fetching medication requests:", error.message);
+    throw new Error("Failed to fetch medication requests");
   }
 };
 
@@ -45,22 +45,104 @@ export const createPatient = async (
   authHeader: string
 ): Promise<any> => {
   const baseURL =
-    'https://fhir.epic.com/interconnect-fhir-oauth/api/FHIR/R4/Patient';
+    "https://fhir.epic.com/interconnect-fhir-oauth/api/FHIR/R4/Patient";
   try {
     const response = await axios.post(baseURL, patientData, {
-      method: 'POST',
+      method: "POST",
       headers: {
         Authorization: `${authHeader}`,
-        'Content-Type': 'application/fhir+json',
-        Accept: 'application/fhir+json',
+        "Content-Type": "application/fhir+json",
+        Accept: "application/fhir+json",
       },
     });
     return response.data;
   } catch (error: any) {
     console.error(
-      'Error fetching patient details:',
+      "Error fetching patient details:",
       error.response?.data || error.message
     );
-    throw new Error('Failed to fetch patient details');
+    throw new Error("Failed to fetch patient details");
+  }
+};
+
+export const findPatientAppointments = async (
+  authHeader: string,
+  startDate: string,
+  endDate: string
+): Promise<any> => {
+  const baseURL =
+    "https://fhir.epic.com/interconnect-fhir-oauth/api/FHIR/STU3/Appointment/$find";
+  try {
+    console.log("authHeader - >", startDate, endDate);
+    const response = await axios.post(
+      baseURL,
+      {
+        resourceType: "Parameters",
+        parameter: [
+          {
+            name: "startTime",
+            valueDateTime: startDate,
+          },
+          {
+            name: "endTime",
+            valueDateTime: endDate,
+          },
+        ],
+      },
+      {
+        headers: {
+          Authorization: `${authHeader}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error: any) {
+    console.error("Error fetching patient appointments:", error);
+    throw new Error("Failed to fetch patient appointments");
+  }
+};
+
+export const bookPatientAppointment = async (
+  authHeader: string,
+  patientId: string,
+  appointmentId: string,
+  appointmentNote: string
+): Promise<any> => {
+  const baseURL =
+    "https://fhir.epic.com/interconnect-fhir-oauth/api/FHIR/STU3/Appointment/$book";
+  try {
+    const response = await axios.post(
+      baseURL,
+      {
+        resourceType: "Parameters",
+        parameter: [
+          {
+            name: "patient",
+            valueIdentifier: {
+              value: patientId,
+            },
+          },
+          {
+            name: "appointment",
+            valueIdentifier: {
+              value: appointmentId,
+            },
+          },
+          {
+            name: "appointmentNote",
+            valueString: appointmentNote,
+          },
+        ],
+      },
+      {
+        headers: {
+          Authorization: `${authHeader}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error: any) {
+    console.error("Error creating patient appointment:", error);
+    throw new Error("Failed to create patient appointment");
   }
 };

@@ -1,45 +1,65 @@
-import { Request, Response } from 'express';
-let client_id = process.env.EPIC_PATIENT_CLIENT_ID;
+import { Request, Response } from "express";
+import { ehrAuthConfig } from "../config";
+import { EhrProvider, HttpStatusCode, HttpMethod } from "../enums";
+import { getWellKnownSmartConfiguration } from "../services/fhir.service";
+
+let client_id: string = "";
 /**
  * @description Requests an Authorization Code from auth server
  */
 export const standaloneLaunch = (req: Request, res: Response): void => {
+  const provider = req.params.provider as EhrProvider;
+
+  const { role: roleParam, fhirType: fhirTypeParam } = req.query;
+  const role = roleParam === "practitioner" ? "practitioner" : "patient";
+
+  if (!provider) {
+    console.log("Missing emr param");
+    res.status(HttpStatusCode.BAD_REQUEST).send("Missing emr param");
+    return;
+  }
+
+  const authConfig = ehrAuthConfig[provider];
+  client_id = authConfig?.clientId?.[role as keyof typeof authConfig.clientId];
+  if (fhirTypeParam === "stu3") {
+    client_id = authConfig?.clientId?.practitionerStu3;
+  }
+
   try {
-    const role = req.query.role || 'patient';
-    client_id =
-      role === 'patient'
-        ? process.env.EPIC_PATIENT_CLIENT_ID
-        : process.env.EPIC_PROVIDER_CLIENT_ID;
     const authParams = new URLSearchParams({
       /**
        * This parameter must contain the value "code".
        */
-      response_type: 'code',
+      response_type: "code",
       // client_secret: '...' // Only if needed
-      client_id: client_id as string,
+      client_id: client_id,
       /**
        * Redirect_uri parameter contains your application's redirect URI. After the request completes on the Epic server,
        * this URI will be called as a callback. The value of this parameter needs to be URL encoded.
        * his URI must also be registered with the EHR's authorization server by adding it to your app listing
        */
-      redirect_uri: process.env.STANDALONE_REDIRECT_URI as string,
+      redirect_uri: authConfig.standaloneRedirectUrl,
       /**
        * This parameter describes the information for which the web application is requesting access.
        * @doc https://hl7.org/fhir/smart-app-launch/1.0.0/scopes-and-launch-context/index.html
        */
-      scope:
-        'launch openid fhirUser patient/Patient.write patient/*.read user/Practitioner.read user/Patient.write Practitioner.read offline_access',
+      scope: authConfig.scope,
       /**
        * URL of the resource server the application intends to access, which is typically the FHIR server.
        */
-      aud: process.env.FHIR_API_BASE as string,
+      aud: authConfig.fhirApiBase,
+      state: provider,
     });
-    const redirectUrl = `${process.env.EPIC_AUTH_URL}?${authParams.toString()}`;
-    console.log('Redirecting:', redirectUrl);
+    const redirectUrl = `${
+      authConfig.authorizationUrl
+    }?${authParams.toString()}`;
+    console.log("Redirecting:", redirectUrl);
     res.redirect(redirectUrl);
   } catch (error) {
-    console.error('Error:', (error as Error).message);
-    res.status(500).send('Internal server error');
+    console.error("Error:", (error as Error).message);
+    res
+      .status(HttpStatusCode.INTERNAL_SERVER_ERROR)
+      .send("Internal server error");
   }
 };
 
@@ -50,10 +70,11 @@ export const standaloneLaunchCallback = async (
   req: Request,
   res: Response
 ): Promise<void> => {
-  const { code } = req.query;
+  const { code, state } = req.query;
+  const authConfig = ehrAuthConfig[state as EhrProvider];
 
-  if (typeof code !== 'string') {
-    res.status(400).send('Missing or invalid code');
+  if (typeof code !== "string") {
+    res.status(HttpStatusCode.BAD_REQUEST).send("Missing or invalid code");
     return;
   }
 
@@ -62,7 +83,7 @@ export const standaloneLaunchCallback = async (
       /**
        * For the Standalone launch flow, this should contain the value "authorization_code"
        */
-      grant_type: 'authorization_code',
+      grant_type: "authorization_code",
       /**
        * This parameter contains the authorization code sent from Epic's authorization server to your
        * application as a querystring parameter on the redirect URI
@@ -72,24 +93,26 @@ export const standaloneLaunchCallback = async (
        * This parameter must contain the same redirect URI that you provided in the initial access request.
        * The value of this parameter needs to be URL encoded.
        */
-      redirect_uri: process.env.STANDALONE_REDIRECT_URI as string,
-      client_id: client_id as string,
+      redirect_uri: authConfig.standaloneRedirectUrl,
+      client_id: client_id,
       // client_secret: '...' // Only if needed
     });
 
     // Exchanges the Authorization Code for an Access Token
-    const response = await fetch(process.env.EPIC_TOKEN_URL as string, {
-      method: 'POST',
+    const response = await fetch(authConfig.tokenUrl, {
+      method: HttpMethod.POST,
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
+        "Content-Type": "application/x-www-form-urlencoded",
       },
       body: params.toString(),
     });
 
     if (!response.ok) {
       const errorData = await response.text();
-      console.error('Token exchange failed:', errorData);
-      res.status(500).send('Token exchange failed');
+      console.error("Token exchange failed:", errorData);
+      res
+        .status(HttpStatusCode.INTERNAL_SERVER_ERROR)
+        .send("Token exchange failed");
       return;
     }
 
@@ -97,19 +120,24 @@ export const standaloneLaunchCallback = async (
     console.log(data);
 
     const { access_token, token_type, id_token, scope, patient } = data;
-    // res.json({ access_token, token_type, id_token, scope });
 
-    // Redirect back to frontend with the access token
-    const token = data.access_token;
+    const token = access_token;
     const redirectUrl = `http://localhost:5173/callback?access_token=${token}&patient=${patient}`;
-
     // Redirect the user to the frontend with the token as a query parameter
     res.redirect(redirectUrl);
   } catch (error) {
-    console.error('Error:', (error as Error).message);
-    res.status(500).send('Internal server error');
+    console.error("Error:", (error as Error).message);
+    res
+      .status(HttpStatusCode.INTERNAL_SERVER_ERROR)
+      .send("Internal server error");
   }
 };
+
+function getEhrProviderByIssuer(fhirApiBase: string): EhrProvider {
+  return Object.entries(ehrAuthConfig).find(
+    ([, config]) => config.fhirApiBase === fhirApiBase
+  )?.[0] as EhrProvider;
+}
 
 /**
  * Your app is launched by the EHR calling the launch URL which is specified in the EHR's configuration.
@@ -120,32 +148,33 @@ export const embeddedLaunch = async (
   req: Request,
   res: Response
 ): Promise<any> => {
-  const fhirServerUrl: any = req.query.iss as string;
-  const launchContext: any = req.query.launch as string;
+  const fhirServerUrl: any = req.query.iss!;
+  const launchContext: any = req.query.launch!;
+  const ehrProvider = getEhrProviderByIssuer(fhirServerUrl);
   const allowedIssuers = [
-    'https://fhir.epic.com/interconnect-fhir-oauth/api/FHIR/R4',
-    'https://fhir.cerner.com/r4',
-    // add all trusted FHIR base URLs here
+    ehrAuthConfig[EhrProvider.EPIC].fhirApiBase,
+    ehrAuthConfig[EhrProvider.CERNER].fhirApiBase,
   ];
 
   if (!allowedIssuers.includes(fhirServerUrl)) {
     console.warn(`Blocked launch attempt from unknown iss: ${fhirServerUrl}`);
-    return res.status(403).send('Unauthorized EHR system.');
+    return res
+      .status(HttpStatusCode.UNAUTHORIZED)
+      .send("Unauthorized EHR system.");
   }
 
+  const authConfig = ehrAuthConfig[ehrProvider];
+
   if (!fhirServerUrl || !launchContext) {
-    return res.status(400).send('Missing iss or launch parameter.');
+    console.log("Missing iss or launch parameter");
+    return res
+      .status(HttpStatusCode.BAD_REQUEST)
+      .send("Missing iss or launch parameter.");
   }
 
   try {
     // Discover authorization and token endpoint. Alternatively, /metadata cas be used as fallback
-    const smartConfigUrl = `${fhirServerUrl}/.well-known/smart-configuration`;
-    const smartConfigResponse = await fetch(smartConfigUrl);
-    const smartConfig: {
-      authorization_endpoint: string;
-      token_endpoint: string;
-      token_endpoint_auth_methods_supported: string[];
-    } = await smartConfigResponse.json();
+    const smartConfig = await getWellKnownSmartConfiguration(fhirServerUrl);
     const authorizeUrl = smartConfig.authorization_endpoint;
     tokenUrl = smartConfig.token_endpoint;
 
@@ -153,22 +182,22 @@ export const embeddedLaunch = async (
       /**
        * This parameter must contain the value "code".
        */
-      response_type: 'code',
+      response_type: "code",
       /**
        * This parameter contains your web application's client ID issued by Epic
        */
-      client_id: process.env.EPIC_PROVIDER_CLIENT_ID as string,
+      client_id: client_id,
       /**
        * This parameter contains your application's redirect URI. After the request completes on the Epic server,
        * this URI will be called as a callback. The value of this parameter needs to be URL encoded.
        * This URI must also be registered with the EHR's authorization server by adding it to your app listing.
        */
-      redirect_uri: process.env.EMBEDDED_REDIRECT_URI as string,
+      redirect_uri: authConfig.embeddedRedirectUrl,
       /**
        * This parameter describes the information for which the web application is requesting access.
        * @doc https://hl7.org/fhir/smart-app-launch/1.0.0/scopes-and-launch-context/index.html
        */
-      scope: 'user/Patient.read',
+      scope: "launch patient/*.read",
       /**
        * This parameter is required for EHR launch workflows. The value to use will be passed from the EHR
        */
@@ -178,15 +207,16 @@ export const embeddedLaunch = async (
        * which is typically the FHIR server returned by the iss.
        */
       aud: fhirServerUrl.toString(),
+      state: ehrProvider,
     });
 
     // Redeem launch token for authorization code
     const redirectUrl = `${authorizeUrl}?${authParams.toString()}`;
-    console.log('Redirecting:', redirectUrl);
+    console.log("Redirecting:", redirectUrl);
     res.redirect(redirectUrl);
   } catch (error) {
     console.error(error);
-    res.status(500).send('Failed to launch');
+    res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).send("Failed to launch");
   }
 };
 
@@ -194,48 +224,50 @@ export const embeddedLaunchCallback = async (
   req: Request,
   res: Response
 ): Promise<any> => {
-  const codeParam = Array.isArray(req.query.code)
-    ? req.query.code[0]
-    : req.query.code;
-  const code = codeParam as string | undefined;
+  const { code, state } = req.query;
+
   console.log(req.query);
   if (!code) {
-    return res.status(400).send('Missing authorization code.');
+    return res
+      .status(HttpStatusCode.BAD_REQUEST)
+      .send("Missing authorization code.");
   }
+
+  const authConfig = ehrAuthConfig[state as EhrProvider];
 
   try {
     // Exchanges the Authorization Code for an Access Token
     const tokenParams = new URLSearchParams({
-      grant_type: 'authorization_code',
-      code: code,
-      client_id: process.env.EPIC_PROVIDER_CLIENT_ID ?? '',
-      redirect_uri: process.env.EMBEDDED_REDIRECT_URI ?? '',
+      grant_type: "authorization_code",
+      code: code as string,
+      client_id: client_id,
+      redirect_uri: authConfig.embeddedRedirectUrl,
     });
     const tokenResponse = await fetch(tokenUrl, {
-      method: 'POST',
+      method: HttpMethod.POST,
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
+        "Content-Type": "application/x-www-form-urlencoded",
       },
       body: tokenParams.toString(),
     });
 
     if (!tokenResponse.ok) {
       const errorText = await tokenResponse.text();
-      console.error('Token exchange failed:', errorText);
-      return res.status(500).send('Error exchanging code for token');
+      console.error("Token exchange failed:", errorText);
+      return res
+        .status(HttpStatusCode.INTERNAL_SERVER_ERROR)
+        .send("Error exchanging code for token");
     }
 
     const tokenData = await tokenResponse.json();
     const accessToken = tokenData.access_token as string;
-    const patient = tokenData.patient as string
 
-    const redirectUrl = `http://localhost:5173/callback?access_token=${accessToken}&patient=${patient}`
-
-    // Redirect the user to the frontend with the token as a query parameter
-    res.redirect(redirectUrl);
+    res.send(`Access token received! ${accessToken}`);
   } catch (err) {
-    console.error('Unexpected error during token exchange:', err);
-    res.status(500).send('Unexpected error during token exchange');
+    console.error("Unexpected error during token exchange:", err);
+    res
+      .status(HttpStatusCode.INTERNAL_SERVER_ERROR)
+      .send("Unexpected error during token exchange");
   }
 };
 

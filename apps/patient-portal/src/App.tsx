@@ -1,11 +1,13 @@
-import { useState } from 'react';
 import './App.css';
 import Button from './components/Button';
+import ROLE from './constants/index';
 
 function App() {
-  const handleLogin = (role) => {
-    // role can be 'patient' or 'provider'
-    const url = `http://localhost:3000/auth/standalone?role=${role}`;
+  const handleLogin = (role, provider, fhirType = "r4") => {
+    // role can be 'patient' or 'practitioner'
+    // provider can be 'epic' or 'cerner', etc.
+    // type can be 'r4' or 'stu3'
+    const url = `http://localhost:3000/auth/standalone/${provider}?role=${role}&fhirType=${fhirType}`;
     window.location.href = url;
   };
 
@@ -15,12 +17,24 @@ function App() {
         <h1 className="app-title">SMART on FHIR Login</h1>
         <div className="button-group">
           <Button
-            label="Login as Patient"
-            onClick={() => handleLogin('patient')}
+            label="Login as Epic Patient"
+            onClick={() => handleLogin(ROLE.PATIENT, 'epic')}
           />
           <Button
-            label="Login as Provider"
-            onClick={() => handleLogin('provider')}
+            label="Login as Epic Provider"
+            onClick={() => handleLogin(ROLE.PRACTITIONER, 'epic')}
+          />
+          <Button
+            label="Login as Epic Provider (STU3)"
+            onClick={() => handleLogin(ROLE.PRACTITIONER, 'epic', 'stu3')}
+          />
+          <Button
+            label="Login as Cerner Patient"
+            onClick={() => handleLogin(ROLE.PATIENT, 'cerner')}
+          />
+          <Button
+            label="Login as Cerner Provider"
+            onClick={() => handleLogin(ROLE.PRACTITIONER, 'cerner')}
           />
         </div>
       </div>
