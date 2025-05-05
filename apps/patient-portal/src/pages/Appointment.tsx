@@ -1,13 +1,25 @@
 import axios from "axios";
 import moment from "moment";
 import { useEffect, useState } from "react";
+import BookAppointment from "../components/BookAppointment";
+
+const patientsData = [
+  { id: "erXuFYUfucBZaryVksYEcMg3", name: "Patient 1" },
+  { id: "erXuFYUfucBZaryVksYEcMg3", name: "Patient 2" },
+  { id: "erXuFYUfucBZaryVksYEcMg3", name: "Patient 3" },
+];
 
 const Appointment = () => {
-
-  const [startDate, setStartDate] = useState<string>(moment().format("YYYY-MM-DD"));
-  const [endDate, setEndDate] = useState<string>(moment().add(1, "days").format("YYYY-MM-DD"));
+  const [startDate, setStartDate] = useState<string>(
+    moment().format("YYYY-MM-DD")
+  );
+  const [endDate, setEndDate] = useState<string>(
+    moment().add(1, "days").format("YYYY-MM-DD")
+  );
   const [slots, setSlots] = useState<any>([]);
+  const [selectedSlot, setSelectedSlot] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(false);
+  const [patients, setPatients] = useState<any>(patientsData);
 
   const getSlots = async () => {
     setLoading(true);
@@ -42,18 +54,24 @@ const Appointment = () => {
     }
   };
 
-  const handleBookSlot = async (slotId: string) => {
-    console.log("Booking slot:", slotId);
+  const handleBookSlot = async (slotData: any) => {
+    console.log("Booking slot:", slotData);
+    setSelectedSlot({
+      id: slotData.resource?.id,
+      start: slotData.resource?.start,
+      end: slotData.resource?.end,
+    });
   };
 
   useEffect(() => {
     getSlots();
+    setPatients(patientsData);
   }, []);
 
   return (
     <div className="max-w-4xl mx-auto p-6">
       <h1 className="text-3xl font-bold mb-8">Book Appointment</h1>
-      
+
       <div className="flex gap-4 mb-6">
         <div className="flex-1">
           <label className="block text-sm font-medium mb-2">Start Date</label>
@@ -102,7 +120,7 @@ const Appointment = () => {
                 <p>Status: {slot.resource.status}</p>
               </div>
               <button
-                onClick={() => handleBookSlot(slot.resource.id)}
+                onClick={() => handleBookSlot(slot)}
                 className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
               >
                 Book Slot
@@ -114,6 +132,14 @@ const Appointment = () => {
         <p className="text-center text-gray-500">
           {loading ? "Loading slots..." : "No slots available"}
         </p>
+      )}
+
+      {selectedSlot && (
+        <BookAppointment
+          slotData={selectedSlot}
+          onClose={() => setSelectedSlot(null)}
+          patients={patients}
+        />
       )}
     </div>
   );

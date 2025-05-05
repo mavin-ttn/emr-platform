@@ -4,6 +4,7 @@ import App from "./App";
 import Callback from "./components/callback";
 import Dashboard from "./components/dashboard";
 import Appointment from "./pages/Appointment";
+import { ToastContainer } from "react-toastify";
 //import Callback from './components/callback'
 
 createRoot(document.getElementById("root")!).render(
@@ -14,5 +15,6 @@ createRoot(document.getElementById("root")!).render(
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/appointment" element={<Appointment />} />
     </Routes>
+    <ToastContainer position="top-right" autoClose={5000} hideProgressBar />
   </BrowserRouter>
 );
