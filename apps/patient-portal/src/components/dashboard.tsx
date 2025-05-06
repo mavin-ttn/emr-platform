@@ -125,6 +125,36 @@ function Dashboard() {
     }
   };
 
+  const getVitals = async () => {
+    const token = localStorage.getItem('access_token');
+    const patientId =
+      localStorage.getItem('patient_id') === 'undefined'
+        ? undefined
+        : localStorage.getItem('patient_id');
+
+    if (!token) {
+      console.warn('No access token found!');
+      return;
+    }
+
+    try {
+      const response = await axios.get(
+        `http://localhost:3007/v2/vitals/${patientId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = response.data;
+      console.log('vitals data - >', data);
+
+    } catch (err) {
+      console.error('Failed to fetch patient vitals data:', err);
+    }
+  };
+
   if (!patient)
     return (
       <div className="centered-loading">
@@ -171,6 +201,16 @@ function Dashboard() {
                 </div>
               ))}
           </div>
+        </>
+      ) : null}
+
+      {userRole === ROLE.PATIENT ? (
+        <>
+          {' '}
+          <Button
+            label="Get Vital Signs"
+            onClick={() => getVitals()}
+          />
         </>
       ) : null}
     </div>

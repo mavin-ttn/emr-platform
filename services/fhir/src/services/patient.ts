@@ -40,6 +40,24 @@ export const getMedicationRequests = async (
   }
 };
 
+export const getVitalSigns = async (
+  patientId: string,
+  authHeader: string
+): Promise<any> => {
+  const baseURL = `https://fhir.epic.com/interconnect-fhir-oauth/api/FHIR/R4/Observation?category=vital-signs&subject=Patient/${patientId}`;
+  try {
+    const response = await axios.get(baseURL, {
+      headers: {
+        Authorization: `${authHeader}`,
+      },
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error('Error fetching vital signs:', error.message);
+    throw new Error('Failed to fetch medication requests');
+  }
+};
+
 export const createPatient = async (
   patientData: string,
   authHeader: string

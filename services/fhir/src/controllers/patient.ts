@@ -3,6 +3,7 @@ import {
   getPatientDetails,
   getMedicationRequests,
   createPatient,
+  getVitalSigns
 } from '../services/patient';
 
 export const fetchPatientDetails = async (
@@ -31,6 +32,23 @@ export const fetchMedicationRequests = async (
       authHeader
     );
     res.status(200).json(medicationRequests);
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const fetchVitalSigns = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { patientId } = req.params;
+  try {
+    const authHeader = req.headers?.authorization || '';
+    const vitals = await getVitalSigns(
+      patientId,
+      authHeader
+    );
+    res.status(200).json(vitals);
   } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
