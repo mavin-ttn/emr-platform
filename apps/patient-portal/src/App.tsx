@@ -1,13 +1,13 @@
 import './App.css';
 import Button from './components/Button';
-import ROLE from './constants/index';
+import { ROLE } from './constants';
 
 function App() {
-  const handleLogin = (role, provider, fhirType = "r4") => {
+  const handleLogin = (role: string, provider: string) => {
     // role can be 'patient' or 'practitioner'
     // provider can be 'epic' or 'cerner', etc.
     // type can be 'r4' or 'stu3'
-    const url = `http://localhost:3000/auth/standalone/${provider}?role=${role}&fhirType=${fhirType}`;
+    const url = `http://localhost:3000/auth/standalone/${provider}?role=${role}`;
     window.location.href = url;
   };
 
@@ -26,7 +26,7 @@ function App() {
           />
           <Button
             label="Login as Epic Provider (STU3)"
-            onClick={() => handleLogin(ROLE.PRACTITIONER, 'epic', 'stu3')}
+            onClick={() => handleLogin(ROLE.PRACTITIONER_STU3, 'epic')}
           />
           <Button
             label="Login as Cerner Patient"

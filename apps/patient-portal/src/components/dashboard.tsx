@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import CreatePatient from "./CreatePatient";
-import ROLE from "../constants/index";
 import Button from "./Button";
 import { useNavigate } from "react-router-dom";
+import { ROLE } from "../constants";
 
 interface PatientInfo {
   name: string;
@@ -150,6 +150,10 @@ function Dashboard() {
             <Button
               label="Book Appointment"
               onClick={() => navigate("/appointment")}
+            />
+            <Button
+              label="Appointment Tracker"
+              onClick={() => navigate("/patientAppointments")}
             />
           </div>
         </div>

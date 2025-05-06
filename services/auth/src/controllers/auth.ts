@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { ehrAuthConfig } from "../config";
-import { EhrProvider, HttpStatusCode, HttpMethod } from "../enums";
+import { EhrProvider, HttpStatusCode, HttpMethod, Roles } from "../enums";
 import { getWellKnownSmartConfiguration } from "../services/fhir.service";
 
 let client_id: string = "";
@@ -10,8 +10,8 @@ let client_id: string = "";
 export const standaloneLaunch = (req: Request, res: Response): void => {
   const provider = req.params.provider as EhrProvider;
 
-  const { role: roleParam, fhirType: fhirTypeParam } = req.query;
-  const role = roleParam === "practitioner" ? "practitioner" : "patient";
+  const { role: roleParam } = req.query;
+  const role = roleParam as Roles;
 
   if (!provider) {
     console.log("Missing emr param");
@@ -21,9 +21,6 @@ export const standaloneLaunch = (req: Request, res: Response): void => {
 
   const authConfig = ehrAuthConfig[provider];
   client_id = authConfig?.clientId?.[role as keyof typeof authConfig.clientId];
-  if (fhirTypeParam === "stu3") {
-    client_id = authConfig?.clientId?.practitionerStu3;
-  }
 
   try {
     const authParams = new URLSearchParams({
@@ -50,9 +47,8 @@ export const standaloneLaunch = (req: Request, res: Response): void => {
       aud: authConfig.fhirApiBase,
       state: provider,
     });
-    const redirectUrl = `${
-      authConfig.authorizationUrl
-    }?${authParams.toString()}`;
+    const redirectUrl = `${authConfig.authorizationUrl
+      }?${authParams.toString()}`;
     console.log("Redirecting:", redirectUrl);
     res.redirect(redirectUrl);
   } catch (error) {
