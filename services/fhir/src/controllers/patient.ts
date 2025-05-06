@@ -5,6 +5,9 @@ import {
   createPatient,
   findPatientAppointments,
   bookPatientAppointment,
+  getPatientSurgicalHistory,
+  getPatientMedicalHistory,
+  getPatientSocialHistory
 } from "../services/patient";
 
 export const fetchPatientDetails = async (
@@ -88,3 +91,48 @@ export const bookAppointment = async (
     res.status(500).json({ message: error.message });
   }
 };
+
+export const fetchPatientSurgicalHistory = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { patientId } = req.params;
+  try {
+    const authHeader = req.headers?.authorization || '';
+    const historyDetails = await getPatientSurgicalHistory(patientId, authHeader);
+    res.status(200).json(historyDetails);
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
+export const fetchPatientMedicalHistory = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { patientId } = req.params;
+  try {
+    const authHeader = req.headers?.authorization || '';
+    const historyDetails = await getPatientMedicalHistory(patientId, authHeader);
+    res.status(200).json(historyDetails);
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const fetchPatientSocialHistory = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { patientId } = req.params;
+  try {
+    const authHeader = req.headers?.authorization || '';
+    const historyDetails = await getPatientSocialHistory(patientId, authHeader);
+    res.status(200).json(historyDetails);
+
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+};
+

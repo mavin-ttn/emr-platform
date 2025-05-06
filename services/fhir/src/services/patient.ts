@@ -18,6 +18,60 @@ export const getPatientDetails = async (
   }
 };
 
+export const getPatientSurgicalHistory = async (
+  patientId: string,
+  authHeader: string
+): Promise<any> => {
+  try {
+    const baseURL = `https://fhir.epic.com/interconnect-fhir-oauth/api/FHIR/R4/Procedure?patient=${patientId}`;
+    const response = await axios.get(baseURL, {
+      headers: {
+        Authorization: `${authHeader}`,
+      },
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error("Error fetching patient Surgical history:", error.message);
+    throw new Error("Failed to fetch patient Surgical history");
+  }
+};
+
+export const getPatientMedicalHistory = async (
+  patientId: string,
+  authHeader: string
+): Promise<any> => {
+  try {
+    const baseURL = `https://fhir.epic.com/interconnect-fhir-oauth/api/FHIR/R4/Condition?patient=${patientId}`;
+    const response = await axios.get(baseURL, {
+      headers: {
+        Authorization: `${authHeader}`,
+      },
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error("Error fetching patient Medical history:", error.message);
+    throw new Error("Failed to fetch patient Medical history");
+  }
+};
+
+export const getPatientSocialHistory = async (
+  patientId: string,
+  authHeader: string
+): Promise<any> => {
+  try {
+    const baseURL = `https://fhir.epic.com/interconnect-fhir-oauth/api/FHIR/R4/Observation?patient=${patientId}&category=social-history`;
+    const response = await axios.get(baseURL, {
+      headers: {
+        Authorization: `${authHeader}`,
+      },
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error("Error fetching patient Social history:", error.message);
+    throw new Error("Failed to fetch patient Social history");
+  }
+};
+
 /**
  * Fetch medication requests for a patient
  * @param patientId - The ID of the patient
