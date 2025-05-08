@@ -1,13 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import axios from "axios";
 import moment from "moment";
 import { useEffect, useState } from "react";
 import BookAppointment from "../components/BookAppointment";
-
-const patientsData = [
-  { id: "erXuFYUfucBZaryVksYEcMg3", name: "Patient 1" },
-  { id: "erXuFYUfucBZaryVksYEcMg3", name: "Patient 2" },
-  { id: "erXuFYUfucBZaryVksYEcMg3", name: "Patient 3" },
-];
+import { PATIENTS_DATA } from "../constants";
+import { useNavigate } from "react-router-dom";
 
 const Appointment = () => {
   const [startDate, setStartDate] = useState<string>(
@@ -19,7 +16,9 @@ const Appointment = () => {
   const [slots, setSlots] = useState<any>([]);
   const [selectedSlot, setSelectedSlot] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(false);
-  const [patients, setPatients] = useState<any>(patientsData);
+  const [patients, setPatients] = useState<any>(PATIENTS_DATA);
+
+  const navigate = useNavigate();
 
   const getSlots = async () => {
     setLoading(true);
@@ -65,11 +64,18 @@ const Appointment = () => {
 
   useEffect(() => {
     getSlots();
-    setPatients(patientsData);
+    setPatients(PATIENTS_DATA);
   }, []);
 
   return (
     <div className="max-w-4xl mx-auto p-6">
+      <button
+        onClick={() => navigate("/dashboard")}
+        className="inline-flex items-center gap-2 text-sm font-medium px-4 py-2 rounded-xl border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 transition-all shadow-sm cursor-pointer"
+      >
+        ← Back to Dashboard
+      </button>
+
       <h1 className="text-3xl font-bold mb-8">Book Appointment</h1>
 
       <div className="flex gap-4 mb-6">
@@ -104,7 +110,7 @@ const Appointment = () => {
 
       {slots.length > 0 ? (
         <div className="grid gap-4">
-          {slots.map((slot) => (
+          {slots.map((slot: any) => (
             <div
               key={slot.resource.id}
               className="border rounded-lg p-4 flex justify-between items-center"

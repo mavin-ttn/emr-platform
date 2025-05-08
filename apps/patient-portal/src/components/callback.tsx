@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
-import ROLE from '../constants/index';
+import { ROLE } from '../constants';
 
 function Callback() {
   const navigate = useNavigate();

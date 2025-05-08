@@ -7,7 +7,8 @@ import {
   bookPatientAppointment,
   getPatientSurgicalHistory,
   getPatientMedicalHistory,
-  getPatientSocialHistory
+  getPatientSocialHistory,
+  getPatientAppointments,
 } from "../services/patient";
 
 export const fetchPatientDetails = async (
@@ -136,3 +137,20 @@ export const fetchPatientSocialHistory = async (
   }
 };
 
+
+export const fetchPatientAppointments = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const authHeader = req.headers?.authorization || "";
+    const { patientId } = req.params;
+    const appointments = await getPatientAppointments(
+      authHeader,
+      patientId,
+    );
+    res.status(200).json(appointments);
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+};
