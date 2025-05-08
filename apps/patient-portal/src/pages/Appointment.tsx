@@ -29,13 +29,15 @@ const Appointment = () => {
       return;
     }
 
+    const dates = {
+      startDate: moment(startDate).toISOString(),
+      endDate: moment(endDate).toISOString(),
+    };
+
     try {
       const response = await axios.post(
         `http://localhost:3007/v2/find-appointments`,
-        {
-          startDate,
-          endDate,
-        },
+        dates,
         {
           headers: {
             Authorization: `Bearer ${token}`,
