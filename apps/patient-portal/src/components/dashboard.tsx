@@ -3,6 +3,7 @@ import axios from "axios";
 import CreatePatient from "./CreatePatient";
 import Button from "./Button";
 import { useNavigate } from "react-router-dom";
+import Table from "./table";
 import { ROLE } from "../constants";
 
 interface PatientInfo {
@@ -24,6 +25,18 @@ interface MedicationRequest {
   dosageInstruction: string;
 }
 
+interface SurgicalHistory {}
+
+interface MedicalHistory {}
+interface SocialHistory {
+  observationType?: string;
+  value?: string;
+  startDate?: string;
+  endDate?: string;
+  issuedDate?: string;
+  performer?: string;
+}
+
 function Dashboard() {
   const [patient, setPatient] = useState<PatientInfo | null>(null);
   const [medicationRequest, setMedicationRequest] =
@@ -31,6 +44,32 @@ function Dashboard() {
   const userRole = localStorage.getItem("userRole");
 
   const navigate = useNavigate();
+  const [surgicalHistoryList, setSurgicalHistoryList] = useState<any[]>([]);
+  const [medicalHistory, setMedicalHistory] = useState<MedicalHistory | null>(
+    null
+  );
+  const [socialHistoryList, setSocialHistoryList] = useState<any[]>([]);
+
+  const surgicalHeaders: string[] = [
+    "Condition",
+    "SNOMED",
+    "ICD9",
+    "ICD10",
+    "Clinical Status",
+    "Verification Status",
+    "Categories",
+    "Onset Date",
+    "Recorded Date",
+  ];
+
+  const socialHeaders: string[] = [
+    "Type",
+    "Status",
+    "Value",
+    "StartDate",
+    "EndDate",
+    "IssuedDate",
+  ];
 
   useEffect(() => {
     const fetchPatient = async () => {
@@ -127,6 +166,155 @@ function Dashboard() {
     }
   };
 
+  // const getMedicalHistory = async () => {
+  //   const token = localStorage.getItem('access_token');
+  //   const patientId =
+  //     localStorage.getItem('patient_id') === 'undefined'
+  //       ? undefined
+  //       : localStorage.getItem('patient_id');
+
+  //   if (!token) {
+  //     console.warn('No access token found!');
+  //     return;
+  //   }
+
+  //   try {
+  //     const response = await axios.get(
+  //       `http://localhost:3007/v2/patient-medical-history/${patientId}`,
+  //       {
+  //         headers: {
+  //           Authorization: `Bearer ${token}`,
+  //         },
+  //       }
+  //     );
+
+  //     const data = response.data;
+  //     console.log("data--",data)
+  //    setMedicalHistory({
+  //       therapyType: data.entry[0].resource.courseOfTherapyType.text,
+  //       dosageInstruction: data.entry[0].resource.dosageInstruction[0].text,
+  //     });
+  //   } catch (err) {
+  //     console.error('Failed to fetch Medical History data:', err);
+  //   }
+  // };
+
+  const getSurgicalHistory = async () => {
+    const token = localStorage.getItem("access_token");
+    const patientId =
+      localStorage.getItem("patient_id") === "undefined"
+        ? undefined
+        : localStorage.getItem("patient_id");
+
+    if (!token) {
+      console.warn("No access token found!");
+      return;
+    }
+
+    try {
+      const response = await axios.get(
+        `http://localhost:3007/v2/patient-medical-history/${patientId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = response.data;
+      console.log("data--", data);
+
+      if (!data?.entry?.length) return;
+
+      const conditions = data.entry
+        .filter((e: any) => e.resource?.resourceType === "Condition")
+        .map((cond: any) => {
+          const coding = cond.resource.code?.coding || [];
+          const snomed = coding.find(
+            (c: any) => c.system === "http://snomed.info/sct"
+          );
+          const icd9 = coding.find(
+            (c: any) => c.system === "http://hl7.org/fhir/sid/icd-9-cm"
+          );
+          const icd10 = coding.find(
+            (c: any) => c.system === "http://hl7.org/fhir/sid/icd-10-cm"
+          );
+
+          return {
+            Condition:
+              cond.resource.code?.text ||
+              snomed?.display ||
+              icd10?.display ||
+              "Unknown",
+            SNOMED: snomed?.display,
+            ICD9: icd9?.display,
+            ICD10: icd10?.display,
+            "Clinical Status": cond.resource.clinicalStatus?.text || null,
+            "Verification Status":
+              cond.resource.verificationStatus?.text || null,
+            Categories: (cond.resource.category || []).map(
+              (cat: any) => cat.text
+            ),
+            "Onset Date": cond.resource.onsetDateTime || null,
+            "Recorded Date": cond.resource.recordedDate || null,
+          };
+        });
+
+      setSurgicalHistoryList(conditions);
+    } catch (err) {
+      console.error("Failed to fetch Surgical History data:", err);
+    }
+  };
+  const getSocialHistory = async () => {
+    const token = localStorage.getItem("access_token");
+    const patientId =
+      localStorage.getItem("patient_id") === "undefined"
+        ? undefined
+        : localStorage.getItem("patient_id");
+
+    if (!token) {
+      console.warn("No access token found!");
+      return;
+    }
+
+    try {
+      const response = await axios.get(
+        `http://localhost:3007/v2/patient-social-history/${patientId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = response.data;
+      console.log("data--", data);
+
+      if (!data?.entry?.length) return;
+
+      const socialHistories: SocialHistory[] = data.entry
+        .filter((e: any) => e.resource?.resourceType === "Observation")
+        .map((obs: any) => ({
+          Type:
+            obs.resource.code?.text ||
+            obs.resource.code?.coding?.[0]?.display ||
+            "Unknown",
+          Status: obs.resource.status || "-",
+          Value:
+            obs.resource.valueCodeableConcept?.text ||
+            obs.resource.valueCodeableConcept?.coding?.[0]?.display ||
+            "-",
+          StartDate: obs.resource.effectivePeriod?.start || "-",
+          EndDate: obs.resource.effectivePeriod?.end || "-",
+          IssuedDate: obs.resource.issued || "-",
+        }));
+
+      setSocialHistoryList(socialHistories);
+    } catch (err) {
+      console.error("Failed to fetch Social History data:", err);
+    }
+  };
+
   if (!patient)
     return (
       <div className="centered-loading">
@@ -190,6 +378,36 @@ function Dashboard() {
                 </div>
               ))}
           </div>
+          <Button
+            label="Get Surgical History"
+            onClick={() => getSurgicalHistory()}
+          />
+          {surgicalHistoryList.length > 0 && (
+            <Table headers={surgicalHeaders} data={surgicalHistoryList} />
+          )}
+          <div></div>
+          {/* <Button
+            label="Get Medical History"
+            onClick={() => getMedicalHistory()}
+          />
+          <div className="card-grid grid grid-cols-2 gap-4 p-4">
+            {medicalHistory &&
+              Object.entries(medicalHistory).map(([key, value]) => (
+                <div key={key} className="card p-4 border rounded shadow">
+                  <p className="card-label font-semibold">
+                    {key.replace(/([A-Z])/g, ' $1')}
+                  </p>
+                  <p className="card-value text-gray-700">{value}</p>
+                </div>
+              ))}
+          </div> */}
+          <Button
+            label="Get Social History"
+            onClick={() => getSocialHistory()}
+          />
+          {socialHistoryList.length > 0 && (
+            <Table headers={socialHeaders} data={socialHistoryList} />
+          )}
         </>
       ) : null}
     </div>

@@ -20,7 +20,7 @@ export const ehrAuthConfig: Record<EhrProvider, EhRAuthConfig> = {
     standaloneRedirectUrl: appConfig.origin + "/auth/callback",
     embeddedRedirectUrl: appConfig.origin + "/auth/embeddedCallback",
     fhirApiBase: process.env.EPIC_FHIR_API_BASE!,
-    scope: "openid profile user/Patient.read patient/MedicationRequest.write",
+    scope: "openid profile user/Patient.read patient/MedicationRequest.write Practitioner.read patient/Condition.read patient/Procedure.read patient/Observation.read",
   },
   [EhrProvider.CERNER]: {
     authorizationUrl: process.env.CERNER_AUTH_URL!,

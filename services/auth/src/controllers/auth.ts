@@ -73,7 +73,6 @@ export const standaloneLaunchCallback = async (
     res.status(HttpStatusCode.BAD_REQUEST).send("Missing or invalid code");
     return;
   }
-
   try {
     const params = new URLSearchParams({
       /**
