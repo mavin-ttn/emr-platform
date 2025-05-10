@@ -5,6 +5,7 @@ import Button from "./Button";
 import { useNavigate } from "react-router-dom";
 import Table from "./table";
 import { ROLE } from "../constants";
+import { formatDate } from "../utils/helper";
 
 interface PatientInfo {
   name: string;
@@ -44,11 +45,19 @@ function Dashboard() {
   const userRole = localStorage.getItem("userRole");
 
   const navigate = useNavigate();
+  const [medicalHistoryList, setMedicalHistoryList] = useState<any[]>([]);
   const [surgicalHistoryList, setSurgicalHistoryList] = useState<any[]>([]);
-  const [medicalHistory, setMedicalHistory] = useState<MedicalHistory | null>(
-    null
-  );
   const [socialHistoryList, setSocialHistoryList] = useState<any[]>([]);
+
+  const medicalHeaders: string[] = [
+    "Condition",
+    "Clinical Status",
+    "Verification Status",
+    "Categories",
+    "Onset Date Time",
+    "Recorded Date",
+    "Codes",
+  ];
 
   const surgicalHeaders: string[] = [
     "Condition",
@@ -66,9 +75,9 @@ function Dashboard() {
     "Type",
     "Status",
     "Value",
-    "StartDate",
-    "EndDate",
-    "IssuedDate",
+    "Start Date",
+    "End Date",
+    "Issued Date",
   ];
 
   useEffect(() => {
@@ -166,38 +175,68 @@ function Dashboard() {
     }
   };
 
-  // const getMedicalHistory = async () => {
-  //   const token = localStorage.getItem('access_token');
-  //   const patientId =
-  //     localStorage.getItem('patient_id') === 'undefined'
-  //       ? undefined
-  //       : localStorage.getItem('patient_id');
+  const mapSystemToName = (systemUrl: string) => {
+    if (systemUrl.includes("icd-10")) return "ICD-10-CM";
+    if (systemUrl.includes("icd-9")) return "ICD-9-CM";
+    if (systemUrl.includes("snomed")) return "SNOMED";
+    return "Other";
+  };
 
-  //   if (!token) {
-  //     console.warn('No access token found!');
-  //     return;
-  //   }
+  const getMedicalHistory = async () => {
+    const token = localStorage.getItem("access_token");
+    const patientId =
+      localStorage.getItem("patient_id") === "undefined"
+        ? undefined
+        : localStorage.getItem("patient_id");
 
-  //   try {
-  //     const response = await axios.get(
-  //       `http://localhost:3007/v2/patient-medical-history/${patientId}`,
-  //       {
-  //         headers: {
-  //           Authorization: `Bearer ${token}`,
-  //         },
-  //       }
-  //     );
+    if (!token) {
+      console.warn("No access token found!");
+      return;
+    }
 
-  //     const data = response.data;
-  //     console.log("data--",data)
-  //    setMedicalHistory({
-  //       therapyType: data.entry[0].resource.courseOfTherapyType.text,
-  //       dosageInstruction: data.entry[0].resource.dosageInstruction[0].text,
-  //     });
-  //   } catch (err) {
-  //     console.error('Failed to fetch Medical History data:', err);
-  //   }
-  // };
+    try {
+      const response = await axios.get(
+        `http://localhost:3007/v2/patient-medical-history/${patientId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = response.data;
+      console.log("data--", data);
+
+      if (!data?.entry?.length) return [];
+
+      const newMedicalData = data.entry
+        .filter((e: any) => e.resource?.resourceType === "Condition")
+        .map((cond: any) => {
+          const resource = cond.resource;
+
+          const codes = (resource.code?.coding || []).map((code: any) => ({
+            system: mapSystemToName(code.system || ""),
+            code: code.code || "",
+            display: code.display || "",
+          }));
+
+          return {
+            Condition: resource.code?.text || "",
+            "Clinical Status": resource.clinicalStatus?.text || "",
+            "Verification Status": resource.verificationStatus?.text || "",
+            Categories: (resource.category || []).map(
+              (cat: any) => cat.text || ""
+            ),
+            "Onset Date Time": resource.onsetDateTime || "",
+            "Recorded Date": resource.recordedDate || "",
+            Codes: codes?.map((obj: any) => obj.display || ""),
+          };
+        });
+      setMedicalHistoryList(newMedicalData);
+    } catch (err) {
+      console.error("Failed to fetch Medical History data:", err);
+    }
+  };
 
   const getSurgicalHistory = async () => {
     const token = localStorage.getItem("access_token");
@@ -265,6 +304,7 @@ function Dashboard() {
       console.error("Failed to fetch Surgical History data:", err);
     }
   };
+
   const getSocialHistory = async () => {
     const token = localStorage.getItem("access_token");
     const patientId =
@@ -299,14 +339,14 @@ function Dashboard() {
             obs.resource.code?.text ||
             obs.resource.code?.coding?.[0]?.display ||
             "Unknown",
-          Status: obs.resource.status || "-",
+          Status: obs.resource.status || "",
           Value:
             obs.resource.valueCodeableConcept?.text ||
             obs.resource.valueCodeableConcept?.coding?.[0]?.display ||
-            "-",
-          StartDate: obs.resource.effectivePeriod?.start || "-",
-          EndDate: obs.resource.effectivePeriod?.end || "-",
-          IssuedDate: obs.resource.issued || "-",
+            "",
+          "Start Date": obs.resource.effectivePeriod?.start || "",
+          "End Date": obs.resource.effectivePeriod?.end || "",
+          "Issued Date": formatDate(obs.resource.issued) || "",
         }));
 
       setSocialHistoryList(socialHistories);
@@ -379,6 +419,14 @@ function Dashboard() {
               ))}
           </div>
           <Button
+            label="Get Medical History"
+            onClick={() => getMedicalHistory()}
+          />
+          {medicalHistoryList.length > 0 && (
+            <Table headers={medicalHeaders} data={medicalHistoryList} />
+          )}
+          <div></div>
+          <Button
             label="Get Surgical History"
             onClick={() => getSurgicalHistory()}
           />
@@ -386,21 +434,6 @@ function Dashboard() {
             <Table headers={surgicalHeaders} data={surgicalHistoryList} />
           )}
           <div></div>
-          {/* <Button
-            label="Get Medical History"
-            onClick={() => getMedicalHistory()}
-          />
-          <div className="card-grid grid grid-cols-2 gap-4 p-4">
-            {medicalHistory &&
-              Object.entries(medicalHistory).map(([key, value]) => (
-                <div key={key} className="card p-4 border rounded shadow">
-                  <p className="card-label font-semibold">
-                    {key.replace(/([A-Z])/g, ' $1')}
-                  </p>
-                  <p className="card-value text-gray-700">{value}</p>
-                </div>
-              ))}
-          </div> */}
           <Button
             label="Get Social History"
             onClick={() => getSocialHistory()}

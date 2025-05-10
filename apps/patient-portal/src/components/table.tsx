@@ -26,7 +26,7 @@ const Table: React.FC<TableProps> = ({ headers, data }) => {
             <tr key={i}>
               {headers.map((header, j) => (
                 <td key={j}>
-                  {row[header] ?? '-'}
+               {row[header]?.toString().trim() || '-'}
                 </td>
               ))}
             </tr>
