@@ -1,13 +1,18 @@
-import React from 'react';
+import React from "react";
+
+type HeaderConfig = {
+  label: string;
+  key: string;
+};
 
 type TableProps = {
-  headers: string[];
+  headers: HeaderConfig[];
   data: Record<string, any>[];
 };
 
 const Table: React.FC<TableProps> = ({ headers, data }) => {
-  console.log("data-----",data)
-  if (!data || data.length === 0) return <p className="no-data">No data available</p>;
+  if (!data || data.length === 0)
+    return <p className="no-data">No data available</p>;
 
   return (
     <div className="table-container">
@@ -15,9 +20,7 @@ const Table: React.FC<TableProps> = ({ headers, data }) => {
         <thead>
           <tr>
             {headers.map((header, idx) => (
-              <th key={idx}>
-                {header}
-              </th>
+              <th key={idx}>{header.label}</th>
             ))}
           </tr>
         </thead>
@@ -25,9 +28,7 @@ const Table: React.FC<TableProps> = ({ headers, data }) => {
           {data.map((row, i) => (
             <tr key={i}>
               {headers.map((header, j) => (
-                <td key={j}>
-               {row[header]?.toString().trim() || '-'}
-                </td>
+                <td key={j}>{row[header.key]?.toString().trim() || "-"}</td>
               ))}
             </tr>
           ))}

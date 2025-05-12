@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import Table from "./table";
 import { ROLE } from "../constants";
 import { formatDate } from "../utils/helper";
+import { getAuthInfo } from "../utils/auth";
 
 interface PatientInfo {
   name: string;
@@ -26,16 +27,34 @@ interface MedicationRequest {
   dosageInstruction: string;
 }
 
-interface SurgicalHistory {}
+interface SurgicalHistory {
+  condition: string;
+  snomed?: string;
+  icd9?: string;
+  icd10?: string;
+  clinicalStatus?: string;
+  verificationStatus?: string;
+  categories: string[];
+  onsetDate?: string;
+  recordedDate?: string;
+}
 
-interface MedicalHistory {}
+interface MedicalHistory {
+  condition: string;
+  clinicalStatus: string;
+  verificationStatus: string;
+  categories: string[];
+  onsetDateTime: string;
+  recordedDate: string;
+  codes: string[];
+}
 interface SocialHistory {
-  observationType?: string;
-  value?: string;
-  startDate?: string;
-  endDate?: string;
-  issuedDate?: string;
-  performer?: string;
+  type: string;
+  status: string;
+  value: string;
+  startDate: string;
+  endDate: string;
+  issuedDate: string;
 }
 
 function Dashboard() {
@@ -45,54 +64,52 @@ function Dashboard() {
   const userRole = localStorage.getItem("userRole");
 
   const navigate = useNavigate();
-  const [medicalHistoryList, setMedicalHistoryList] = useState<any[]>([]);
-  const [surgicalHistoryList, setSurgicalHistoryList] = useState<any[]>([]);
-  const [socialHistoryList, setSocialHistoryList] = useState<any[]>([]);
+  const [medicalHistoryList, setMedicalHistoryList] = useState<
+    MedicalHistory[]
+  >([]);
+  const [surgicalHistoryList, setSurgicalHistoryList] = useState<
+    SurgicalHistory[]
+  >([]);
+  const [socialHistoryList, setSocialHistoryList] = useState<SocialHistory[]>(
+    []
+  );
 
-  const medicalHeaders: string[] = [
-    "Condition",
-    "Clinical Status",
-    "Verification Status",
-    "Categories",
-    "Onset Date Time",
-    "Recorded Date",
-    "Codes",
+  const medicalHeaders = [
+    { key: "condition", label: "Condition" },
+    { key: "clinicalStatus", label: "Clinical Status" },
+    { key: "verificationStatus", label: "Verification Status" },
+    { key: "categories", label: "Categories" },
+    { key: "onsetDateTime", label: "Onset Date Time" },
+    { key: "recordedDate", label: "Recorded Date" },
+    { key: "codes", label: "Codes" },
   ];
 
-  const surgicalHeaders: string[] = [
-    "Condition",
-    "SNOMED",
-    "ICD9",
-    "ICD10",
-    "Clinical Status",
-    "Verification Status",
-    "Categories",
-    "Onset Date",
-    "Recorded Date",
+  const surgicalHeaders = [
+    { key: "condition", label: "Condition" },
+    { key: "snomed", label: "SNOMED" },
+    { key: "icd9", label: "ICD9" },
+    { key: "icd10", label: "ICD10" },
+    { key: "clinicalStatus", label: "Clinical Status" },
+    { key: "verificationStatus", label: "Verification Status" },
+    { key: "categories", label: "Categories" },
+    { key: "onsetDate", label: "Onset Date" },
+    { key: "recordedDate", label: "Recorded Date" },
   ];
 
-  const socialHeaders: string[] = [
-    "Type",
-    "Status",
-    "Value",
-    "Start Date",
-    "End Date",
-    "Issued Date",
+  const socialHeaders = [
+    { key: "type", label: "Type" },
+    { key: "status", label: "Status" },
+    { key: "value", label: "Value" },
+    { key: "startDate", label: "Start Date" },
+    { key: "endDate", label: "End Date" },
+    { key: "issuedDate", label: "Issued Date" },
   ];
 
   useEffect(() => {
     const fetchPatient = async () => {
-      const token = localStorage.getItem("access_token");
-      const patientId =
-        localStorage.getItem("patient_id") === "undefined"
-          ? undefined
-          : localStorage.getItem("patient_id");
-      const userId = patientId || localStorage.getItem("id");
-
-      if (!token) {
-        console.warn("No access token found!");
-        return;
-      }
+      const auth = getAuthInfo();
+      if (!auth) return;
+      const { token, patientId, userId } = auth;
 
       try {
         const response = await axios.get(
@@ -143,16 +160,9 @@ function Dashboard() {
   }, [medicationRequest]);
 
   const getMedicationRequest = async () => {
-    const token = localStorage.getItem("access_token");
-    const patientId =
-      localStorage.getItem("patient_id") === "undefined"
-        ? undefined
-        : localStorage.getItem("patient_id");
-
-    if (!token) {
-      console.warn("No access token found!");
-      return;
-    }
+    const auth = getAuthInfo();
+    if (!auth) return;
+    const { token, patientId } = auth;
 
     try {
       const response = await axios.get(
@@ -183,16 +193,9 @@ function Dashboard() {
   };
 
   const getMedicalHistory = async () => {
-    const token = localStorage.getItem("access_token");
-    const patientId =
-      localStorage.getItem("patient_id") === "undefined"
-        ? undefined
-        : localStorage.getItem("patient_id");
-
-    if (!token) {
-      console.warn("No access token found!");
-      return;
-    }
+    const auth = getAuthInfo();
+    if (!auth) return;
+    const { token, patientId } = auth;
 
     try {
       const response = await axios.get(
@@ -209,9 +212,9 @@ function Dashboard() {
 
       if (!data?.entry?.length) return [];
 
-      const newMedicalData = data.entry
+      const newMedicalData: MedicalHistory[] = data.entry
         .filter((e: any) => e.resource?.resourceType === "Condition")
-        .map((cond: any) => {
+        .map((cond: any): MedicalHistory => {
           const resource = cond.resource;
 
           const codes = (resource.code?.coding || []).map((code: any) => ({
@@ -221,15 +224,15 @@ function Dashboard() {
           }));
 
           return {
-            Condition: resource.code?.text || "",
-            "Clinical Status": resource.clinicalStatus?.text || "",
-            "Verification Status": resource.verificationStatus?.text || "",
-            Categories: (resource.category || []).map(
+            condition: resource.code?.text || "",
+            clinicalStatus: resource.clinicalStatus?.text || "",
+            verificationStatus: resource.verificationStatus?.text || "",
+            categories: (resource.category || []).map(
               (cat: any) => cat.text || ""
             ),
-            "Onset Date Time": resource.onsetDateTime || "",
-            "Recorded Date": resource.recordedDate || "",
-            Codes: codes?.map((obj: any) => obj.display || ""),
+            onsetDateTime: resource.onsetDateTime || "",
+            recordedDate: resource.recordedDate || "",
+            codes: codes?.map((obj: any) => obj.display || ""),
           };
         });
       setMedicalHistoryList(newMedicalData);
@@ -239,16 +242,9 @@ function Dashboard() {
   };
 
   const getSurgicalHistory = async () => {
-    const token = localStorage.getItem("access_token");
-    const patientId =
-      localStorage.getItem("patient_id") === "undefined"
-        ? undefined
-        : localStorage.getItem("patient_id");
-
-    if (!token) {
-      console.warn("No access token found!");
-      return;
-    }
+    const auth = getAuthInfo();
+    if (!auth) return;
+    const { token, patientId } = auth;
 
     try {
       const response = await axios.get(
@@ -265,9 +261,9 @@ function Dashboard() {
 
       if (!data?.entry?.length) return;
 
-      const conditions = data.entry
+      const surgicalData: SurgicalHistory[] = data.entry
         .filter((e: any) => e.resource?.resourceType === "Condition")
-        .map((cond: any) => {
+        .map((cond: any): SurgicalHistory => {
           const coding = cond.resource.code?.coding || [];
           const snomed = coding.find(
             (c: any) => c.system === "http://snomed.info/sct"
@@ -280,42 +276,34 @@ function Dashboard() {
           );
 
           return {
-            Condition:
+            condition:
               cond.resource.code?.text ||
               snomed?.display ||
               icd10?.display ||
               "Unknown",
-            SNOMED: snomed?.display,
-            ICD9: icd9?.display,
-            ICD10: icd10?.display,
-            "Clinical Status": cond.resource.clinicalStatus?.text || null,
-            "Verification Status":
-              cond.resource.verificationStatus?.text || null,
-            Categories: (cond.resource.category || []).map(
-              (cat: any) => cat.text
+            snomed: snomed?.display,
+            icd9: icd9?.display,
+            icd10: icd10?.display,
+            clinicalStatus: cond.resource.clinicalStatus?.text || "",
+            verificationStatus: cond.resource.verificationStatus?.text || "",
+            categories: (cond.resource.category || []).map(
+              (cat: any) => cat.text || ""
             ),
-            "Onset Date": cond.resource.onsetDateTime || null,
-            "Recorded Date": cond.resource.recordedDate || null,
+            onsetDate: cond.resource.onsetDateTime || "",
+            recordedDate: cond.resource.recordedDate || "",
           };
         });
 
-      setSurgicalHistoryList(conditions);
+      setSurgicalHistoryList(surgicalData);
     } catch (err) {
       console.error("Failed to fetch Surgical History data:", err);
     }
   };
 
   const getSocialHistory = async () => {
-    const token = localStorage.getItem("access_token");
-    const patientId =
-      localStorage.getItem("patient_id") === "undefined"
-        ? undefined
-        : localStorage.getItem("patient_id");
-
-    if (!token) {
-      console.warn("No access token found!");
-      return;
-    }
+    const auth = getAuthInfo();
+    if (!auth) return;
+    const { token, patientId } = auth;
 
     try {
       const response = await axios.get(
@@ -334,20 +322,22 @@ function Dashboard() {
 
       const socialHistories: SocialHistory[] = data.entry
         .filter((e: any) => e.resource?.resourceType === "Observation")
-        .map((obs: any) => ({
-          Type:
-            obs.resource.code?.text ||
-            obs.resource.code?.coding?.[0]?.display ||
-            "Unknown",
-          Status: obs.resource.status || "",
-          Value:
-            obs.resource.valueCodeableConcept?.text ||
-            obs.resource.valueCodeableConcept?.coding?.[0]?.display ||
-            "",
-          "Start Date": obs.resource.effectivePeriod?.start || "",
-          "End Date": obs.resource.effectivePeriod?.end || "",
-          "Issued Date": formatDate(obs.resource.issued) || "",
-        }));
+        .map(
+          (obs: any): SocialHistory => ({
+            type:
+              obs.resource.code?.text ||
+              obs.resource.code?.coding?.[0]?.display ||
+              "Unknown",
+            status: obs.resource.status || "",
+            value:
+              obs.resource.valueCodeableConcept?.text ||
+              obs.resource.valueCodeableConcept?.coding?.[0]?.display ||
+              "",
+            startDate: obs.resource.effectivePeriod?.start || "",
+            endDate: obs.resource.effectivePeriod?.end || "",
+            issuedDate: formatDate(obs.resource.issued) || "",
+          })
+        );
 
       setSocialHistoryList(socialHistories);
     } catch (err) {
