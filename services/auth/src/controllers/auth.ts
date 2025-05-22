@@ -70,6 +70,7 @@ export const standaloneLaunchCallback = async (
   const { code, state } = req.query;
   const authConfig = ehrAuthConfig[state as EhrProvider];
 
+  console.log(code, typeof code, 'agamcode');
   if (typeof code !== 'string') {
     res.status(HttpStatusCode.BAD_REQUEST).send('Missing or invalid code');
     return;
@@ -151,16 +152,18 @@ export const embeddedLaunch = async (
   const allowedIssuers = [
     ehrAuthConfig[EhrProvider.EPIC].fhirApiBase,
     ehrAuthConfig[EhrProvider.CERNER].fhirApiBase,
+    'https://fhir-myrecord.cerner.com/r4/',
   ];
 
-  if (!allowedIssuers.includes(fhirServerUrl)) {
+  if (!allowedIssuers.some((iss) => fhirServerUrl.startsWith(iss))) {
     console.warn(`Blocked launch attempt from unknown iss: ${fhirServerUrl}`);
     return res
       .status(HttpStatusCode.UNAUTHORIZED)
       .send('Unauthorized EHR system.');
   }
 
-  const authConfig = ehrAuthConfig[ehrProvider];
+  const authConfig = ehrAuthConfig[EhrProvider.CERNER];
+  console.log(authConfig, 'authConfig');
 
   if (!fhirServerUrl || !launchContext) {
     console.log('Missing iss or launch parameter');
@@ -183,7 +186,7 @@ export const embeddedLaunch = async (
       /**
        * This parameter contains your web application's client ID issued by Epic
        */
-      client_id: client_id,
+      client_id: '59a4e6be-9b8f-49ad-91c3-0d4fbbdbb764',
       /**
        * This parameter contains your application's redirect URI. After the request completes on the Epic server,
        * this URI will be called as a callback. The value of this parameter needs to be URL encoded.
@@ -194,7 +197,8 @@ export const embeddedLaunch = async (
        * This parameter describes the information for which the web application is requesting access.
        * @doc https://hl7.org/fhir/smart-app-launch/1.0.0/scopes-and-launch-context/index.html
        */
-      scope: 'launch patient/*.read',
+      scope:
+        'launch patient/*.read user/*.read openid fhirUser patient/Patient.write',
       /**
        * This parameter is required for EHR launch workflows. The value to use will be passed from the EHR
        */
@@ -204,7 +208,7 @@ export const embeddedLaunch = async (
        * which is typically the FHIR server returned by the iss.
        */
       aud: fhirServerUrl.toString(),
-      state: ehrProvider,
+      state: EhrProvider.CERNER,
     });
 
     // Redeem launch token for authorization code
@@ -223,7 +227,6 @@ export const embeddedLaunchCallback = async (
 ): Promise<any> => {
   const { code, state } = req.query;
 
-  console.log(req.query);
   if (!code) {
     return res
       .status(HttpStatusCode.BAD_REQUEST)
@@ -231,13 +234,13 @@ export const embeddedLaunchCallback = async (
   }
 
   const authConfig = ehrAuthConfig[state as EhrProvider];
-
+  console.log(tokenUrl, 'agamauthtokenUrl');
   try {
     // Exchanges the Authorization Code for an Access Token
     const tokenParams = new URLSearchParams({
       grant_type: 'authorization_code',
       code: code as string,
-      client_id: client_id,
+      client_id: '59a4e6be-9b8f-49ad-91c3-0d4fbbdbb764',
       redirect_uri: authConfig.embeddedRedirectUrl,
     });
     const tokenResponse = await fetch(tokenUrl, {
@@ -248,6 +251,7 @@ export const embeddedLaunchCallback = async (
       body: tokenParams.toString(),
     });
 
+    console.log(tokenResponse, 'agamtokenresp', tokenResponse.body);
     if (!tokenResponse.ok) {
       const errorText = await tokenResponse.text();
       console.error('Token exchange failed:', errorText);
@@ -257,9 +261,14 @@ export const embeddedLaunchCallback = async (
     }
 
     const tokenData = await tokenResponse.json();
-    const accessToken = tokenData.access_token as string;
+    console.log(tokenData, 'agamtokenData');
+    const accessToken = tokenData.id_token as string;
+    const patient = tokenData.patient as string;
 
-    res.send(`Access token received! ${accessToken}`);
+    const redirectUrl = `http://localhost:5173/callback?access_token=${accessToken}&patient=${patient}`;
+
+    // Redirect the user to the frontend with the token as a query parameter
+    res.redirect(redirectUrl);
   } catch (err) {
     console.error('Unexpected error during token exchange:', err);
     res

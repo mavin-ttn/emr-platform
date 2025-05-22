@@ -53,6 +53,19 @@ const CreatePatient = () => {
       ],
     };
 
+    let patientDataCerner = {
+      resourceType: 'Patient',
+      name: [
+        {
+          use: 'official',
+          family: 'Kumar',
+          given: ['Rohan'],
+        },
+      ],
+      gender: 'male',
+      birthDate: '1995-04-20',
+    };
+
     try {
       setIsLoading(true);
       const response = await fetch('http://localhost:3007/v2/patient/create', {
@@ -61,7 +74,7 @@ const CreatePatient = () => {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(patientData),
+        body: JSON.stringify(patientDataCerner),
       });
 
       console.log(response.status, 'create api response');

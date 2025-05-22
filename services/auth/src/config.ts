@@ -31,6 +31,7 @@ export const ehrAuthConfig: Record<EhrProvider, EhRAuthConfig> = {
     standaloneRedirectUrl: appConfig.origin + '/auth/callback',
     embeddedRedirectUrl: appConfig.origin + '/auth/embeddedCallback',
     fhirApiBase: process.env.CERNER_FHIR_API_BASE!,
-    scope: 'openid profile user/Patient.read',
+    scope:
+      'openid profile user/Patient.read user/Patient.write fhirUser patient/Patient.write',
   },
 };

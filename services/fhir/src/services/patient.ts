@@ -2,9 +2,13 @@ import axios from 'axios';
 
 export const getPatientDetails = async (
   userId: string,
-  authHeader: string
+  authHeader: string,
+  provider: string
 ): Promise<any> => {
-  const baseURL = `https://fhir.epic.com/interconnect-fhir-oauth/api/FHIR/R4/Patient/${userId}`;
+  const baseURL =
+    provider === 'cerner'
+      ? `https://fhir-open.cerner.com/r4/ec2458f2-1e24-41c8-b71b-0e701af7583d/Patient/12724065`
+      : '';
   try {
     const response = await axios.get(baseURL, {
       headers: {
@@ -45,7 +49,8 @@ export const createPatient = async (
   authHeader: string
 ): Promise<any> => {
   const baseURL =
-    'https://fhir.epic.com/interconnect-fhir-oauth/api/FHIR/R4/Patient';
+    'https://fhir-ehr-code.cerner.com/r4/ec2458f2-1e24-41c8-b71b-0e701af7583d/Patient';
+
   try {
     const response = await axios.post(baseURL, patientData, {
       method: 'POST',
@@ -58,9 +63,9 @@ export const createPatient = async (
     return response.data;
   } catch (error: any) {
     console.error(
-      'Error fetching patient details:',
+      'Error creating patient:',
       error.response?.data || error.message
     );
-    throw new Error('Failed to fetch patient details');
+    throw new Error('Failed to create patinet');
   }
 };

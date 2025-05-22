@@ -33,6 +33,7 @@ function Dashboard() {
   useEffect(() => {
     const fetchPatient = async () => {
       const token = localStorage.getItem('access_token');
+      const provider = localStorage.getItem('provider');
       const patientId =
         localStorage.getItem('patient_id') === 'undefined'
           ? undefined
@@ -46,7 +47,7 @@ function Dashboard() {
 
       try {
         const response = await axios.get(
-          `http://localhost:3000/v2/${userRole}/${userId}`,
+          `http://localhost:3007/v2/${userRole}/${userId}/${provider}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,

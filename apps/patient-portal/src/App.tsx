@@ -7,6 +7,8 @@ function App() {
   const handleLogin = (role, provider) => {
     // role can be 'patient' or 'practitioner'
     // provider can be 'epic' or 'cerner', etc.
+    localStorage.setItem('provider', provider);
+    localStorage.setItem('role', role);
     const url = `http://localhost:3000/auth/standalone/${provider}?role=${role}`;
     window.location.href = url;
   };
